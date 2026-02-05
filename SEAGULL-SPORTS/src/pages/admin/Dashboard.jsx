@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import * as itemController from "./item/controllers/itemController";
-import * as invoiceController from "./invoice/controllers/invoiceController";
-import * as purchaseController from "./purchase/controllers/purchaseController";
+import itemController from "./item/controllers/itemController";
+import invoiceController from "./invoice/controllers/invoiceController";
+import purchaseController from "./purchase/controllers/purchaseController";
 import * as orderController from "./order/controllers/orderController";
-import * as paymentController from "./payment/controllers/paymentController";
+import paymentController from "./payment/controllers/paymentController";
 import "./Dashboard.css";
 
 const Dashboard = () => {
@@ -27,79 +27,65 @@ const Dashboard = () => {
     } else {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   const fetchDashboardData = async () => {
-    if (!currentUser) {
-      setLoading(false);
-      return;
-    }
+    console.log("=== DASHBOARD DATA FETCH START ===");
+    console.log("Current User:", currentUser);
 
     setLoading(true);
-
     try {
-      // Fetch items
-      const itemsResult = await itemController.fetchItems(currentUser.uid);
-      console.log("Items Result:", itemsResult);
-      const totalProducts = itemsResult.success ? itemsResult.items.length : 0;
+      // 1. Fetch Items - Result is in .data
+      const itemsRes = await itemController.fetchItems();
+      console.log("Items Response:", itemsRes);
+      const totalProducts =
+        itemsRes.success && itemsRes.data ? itemsRes.data.length : 0;
+      console.log("Total Products:", totalProducts);
 
-      // Fetch invoices
-      const invoicesResult = await invoiceController.fetchInvoices(
-        currentUser.uid,
-      );
-      console.log("Invoices Result:", invoicesResult);
-      const totalSales = invoicesResult.success
-        ? invoicesResult.invoices.reduce(
-            (sum, invoice) => sum + invoice.totalAmount,
-            0,
-          )
-        : 0;
-
-      // Fetch purchases
-      let totalPurchase = 0;
-      try {
-        const purchasesResult = await purchaseController.fetchPurchases(
-          currentUser.uid,
-        );
-        totalPurchase = purchasesResult.success
-          ? purchasesResult.purchases.reduce(
-              (sum, purchase) => sum + purchase.totalAmount,
+      // 2. Fetch Invoices - Result is in .data
+      const invRes = await invoiceController.fetchInvoices();
+      console.log("Invoices Response:", invRes);
+      const totalSales =
+        invRes.success && invRes.data
+          ? invRes.data.reduce(
+              (sum, inv) => sum + (Number(inv.totalAmount) || 0),
               0,
             )
           : 0;
-      } catch (err) {
-        console.log("Purchase controller not available:", err);
-      }
+      console.log("Total Sales:", totalSales);
 
-      // Fetch orders
-      let totalOrders = 0;
-      try {
-        const ordersResult = await orderController.fetchOrders(currentUser.uid);
-        totalOrders = ordersResult.success ? ordersResult.orders.length : 0;
-      } catch (err) {
-        console.log("Order controller not available:", err);
-      }
+      // 3. Fetch Purchases - Result is in .data
+      const purRes = await purchaseController.fetchPurchases();
+      console.log("Purchases Response:", purRes);
+      const totalPurchase =
+        purRes.success && purRes.data
+          ? purRes.data.reduce(
+              (sum, pur) => sum + (Number(pur.totalAmount) || 0),
+              0,
+            )
+          : 0;
+      console.log("Total Purchase:", totalPurchase);
 
-      // Fetch payments
+      // 4. Fetch Orders - Result is in .orders
+      const ordRes = await orderController.fetchOrders(currentUser.uid);
+      console.log("Orders Response:", ordRes);
+      const totalOrders =
+        ordRes.success && ordRes.orders ? ordRes.orders.length : 0;
+      console.log("Total Orders:", totalOrders);
+
+      // 5. Fetch Payments - Sum In/Out
+      const payRes = await paymentController.fetchPayments();
+      console.log("Payments Response:", payRes);
       let paymentsIn = 0;
       let paymentsOut = 0;
-      try {
-        const paymentsResult = await paymentController.fetchPayments(
-          currentUser.uid,
-        );
-        if (paymentsResult.success) {
-          paymentsResult.payments.forEach((payment) => {
-            if (payment.referenceType === "Invoice") {
-              paymentsIn += payment.paymentAmount;
-            } else if (payment.referenceType === "Purchase") {
-              paymentsOut += payment.paymentAmount;
-            }
-          });
-        }
-      } catch (err) {
-        console.log("Payment controller not available:", err);
+      if (payRes.success && payRes.data) {
+        payRes.data.forEach((p) => {
+          const amt = Number(p.paymentAmount) || 0;
+          if (p.referenceType === "Invoice") paymentsIn += amt;
+          else if (p.referenceType === "Purchase") paymentsOut += amt;
+        });
       }
+      console.log("Payments IN:", paymentsIn, "Payments OUT:", paymentsOut);
 
       setStats({
         totalProducts,
@@ -110,24 +96,53 @@ const Dashboard = () => {
         paymentsOut,
       });
 
-      // Build recent activities
+      // Build Recent Activities List
       const activities = [];
 
-      if (invoicesResult.success) {
-        invoicesResult.invoices.slice(0, 5).forEach((invoice) => {
+      if (invRes.data) {
+        invRes.data.slice(-3).forEach((inv) =>
           activities.push({
-            date: new Date(invoice.invoiceDate).toLocaleDateString(),
+            date: inv.invoiceDate,
             type: "Invoice",
-            description: `${invoice.invoiceNumber} - ${invoice.partyName}`,
-            amount: `₹${invoice.totalAmount.toFixed(2)}`,
-            status: invoice.paymentStatus,
-          });
-        });
+            description: `${inv.invoiceNumber} - ${inv.partyName}`,
+            amount: Number(inv.totalAmount) || 0,
+            status: inv.paymentStatus || "Unpaid",
+          }),
+        );
       }
 
-      setRecentActivities(activities);
+      if (purRes.data) {
+        purRes.data.slice(-3).forEach((pur) =>
+          activities.push({
+            date: pur.purchaseDate,
+            type: "Purchase",
+            description: `${pur.purchaseNumber} - ${pur.partyName}`,
+            amount: Number(pur.totalAmount) || 0,
+            status: pur.paymentStatus || "Unpaid",
+          }),
+        );
+      }
+
+      if (ordRes.orders) {
+        ordRes.orders.slice(-3).forEach((ord) =>
+          activities.push({
+            date: ord.orderDate,
+            type: "Order",
+            description: `${ord.orderNumber} - ${ord.partyName || "Walk-in"}`,
+            amount: Number(ord.totalAmount) || 0,
+            status: ord.status || "Pending",
+          }),
+        );
+      }
+
+      // Sort by date descending and take top 10
+      const sorted = activities
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 10);
+
+      setRecentActivities(sorted);
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
+      console.error("Dashboard Fetch Error:", error);
     } finally {
       setLoading(false);
     }
@@ -136,80 +151,36 @@ const Dashboard = () => {
   return (
     <div className="dashboard-container">
       {loading ? (
-        <div className="loading-message">Loading dashboard data...</div>
+        <div className="loading-spinner">Loading Data...</div>
       ) : (
         <>
           <div className="dashboard-grid">
-            {/* Total Products */}
-            <div className="stat-card">
-              <div className="stat-indicator purple"></div>
-              <div className="stat-content">
-                <h3 className="stat-value">{stats.totalProducts}</h3>
-                <p className="stat-label">Total Products</p>
-                <span className="stat-description">All Items</span>
-              </div>
+            <div className="stat-card purple">
+              <h3>{stats.totalProducts}</h3>
+              <p>Total Products</p>
             </div>
-
-            {/* Total Purchase */}
-            <div className="stat-card">
-              <div className="stat-indicator blue"></div>
-              <div className="stat-content">
-                <h3 className="stat-value">
-                  ₹{stats.totalPurchase.toLocaleString()}
-                </h3>
-                <p className="stat-label">Total Purchase</p>
-                <span className="stat-description">All Purchase Orders</span>
-              </div>
+            <div className="stat-card blue">
+              <h3>₹{stats.totalPurchase.toLocaleString()}</h3>
+              <p>Total Purchase</p>
             </div>
-
-            {/* Total Sales */}
-            <div className="stat-card">
-              <div className="stat-indicator green"></div>
-              <div className="stat-content">
-                <h3 className="stat-value">
-                  ₹{stats.totalSales.toLocaleString()}
-                </h3>
-                <p className="stat-label">Total Sales</p>
-                <span className="stat-description">All Invoices</span>
-              </div>
+            <div className="stat-card green">
+              <h3>₹{stats.totalSales.toLocaleString()}</h3>
+              <p>Total Sales</p>
             </div>
-
-            {/* Total Orders */}
-            <div className="stat-card">
-              <div className="stat-indicator orange"></div>
-              <div className="stat-content">
-                <h3 className="stat-value">{stats.totalOrders}</h3>
-                <p className="stat-label">Total Orders</p>
-                <span className="stat-description">Completed Orders</span>
-              </div>
+            <div className="stat-card orange">
+              <h3>{stats.totalOrders}</h3>
+              <p>Total Orders</p>
             </div>
-
-            {/* Payments IN */}
-            <div className="stat-card payment-card">
-              <div className="stat-indicator cyan"></div>
-              <div className="stat-content">
-                <h3 className="stat-value">
-                  ₹{stats.paymentsIn.toLocaleString()}
-                </h3>
-                <p className="stat-label">Payments IN</p>
-                <span className="stat-description">Received Payments</span>
-              </div>
+            <div className="stat-card cyan">
+              <h3>₹{stats.paymentsIn.toLocaleString()}</h3>
+              <p>Payments IN</p>
             </div>
-
-            {/* Payments OUT */}
-            <div className="stat-card payment-card">
-              <div className="stat-indicator red"></div>
-              <div className="stat-content">
-                <h3 className="stat-value">
-                  ₹{stats.paymentsOut.toLocaleString()}
-                </h3>
-                <p className="stat-label">Payments OUT</p>
-                <span className="stat-description">Paid to Vendors</span>
-              </div>
+            <div className="stat-card red">
+              <h3>₹{stats.paymentsOut.toLocaleString()}</h3>
+              <p>Payments OUT</p>
             </div>
           </div>
 
-          {/* Recent Activities Table */}
           <div className="activities-section">
             <h2 className="section-title">Recent Activities</h2>
             <div className="table-container">
@@ -227,18 +198,20 @@ const Dashboard = () => {
                   {recentActivities.length === 0 ? (
                     <tr>
                       <td colSpan="5" className="no-data">
-                        No recent activities found
+                        No data found
                       </td>
                     </tr>
                   ) : (
                     recentActivities.map((activity, index) => (
                       <tr key={index}>
-                        <td>{activity.date}</td>
+                        <td>{new Date(activity.date).toLocaleDateString()}</td>
                         <td>{activity.type}</td>
                         <td>{activity.description}</td>
-                        <td>{activity.amount}</td>
+                        <td>₹{activity.amount.toLocaleString()}</td>
                         <td>
-                          <span className={`status-badge ${activity.status}`}>
+                          <span
+                            className={`status-badge ${activity.status?.toLowerCase()}`}
+                          >
                             {activity.status}
                           </span>
                         </td>

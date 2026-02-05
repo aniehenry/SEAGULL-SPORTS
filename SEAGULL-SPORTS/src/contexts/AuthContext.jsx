@@ -46,6 +46,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
+    currentUser: user, // Alias for compatibility
     userRole,
     loading,
     logout,
