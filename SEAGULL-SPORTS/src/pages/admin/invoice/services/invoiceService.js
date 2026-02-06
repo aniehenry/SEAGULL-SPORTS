@@ -14,7 +14,7 @@ import itemService from "../../item/services/itemService";
 const getInvoicesCollectionRef = () => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
-  return collection(db, "admin", user.uid, "invoices");
+  return collection(db, "Admin", user.uid, "invoices");
 };
 
 const invoiceService = {
@@ -34,7 +34,7 @@ const invoiceService = {
       const user = auth.currentUser;
       if (!user) throw new Error("User not authenticated");
 
-      const docRef = doc(db, "admin", user.uid, "invoices", invoiceId);
+      const docRef = doc(db, "Admin", user.uid, "invoices", invoiceId);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
@@ -102,7 +102,7 @@ const invoiceService = {
         }
       }
 
-      const docRef = doc(db, "admin", user.uid, "invoices", invoiceId);
+      const docRef = doc(db, "Admin", user.uid, "invoices", invoiceId);
       await updateDoc(docRef, invoice.toFirestore());
     } catch (error) {
       console.error("Error updating invoice:", error);
@@ -125,7 +125,7 @@ const invoiceService = {
         }
       }
 
-      const docRef = doc(db, "admin", user.uid, "invoices", invoiceId);
+      const docRef = doc(db, "Admin", user.uid, "invoices", invoiceId);
       await deleteDoc(docRef);
     } catch (error) {
       console.error("Error deleting invoice:", error);

@@ -19,21 +19,25 @@ const OrderManagement = () => {
       return;
     }
 
+    console.log("Fetching orders for admin user:", currentUser.uid);
     setLoading(true);
     setError("");
 
     try {
       const result = await orderController.fetchOrders(currentUser.uid);
+      console.log("Orders fetch result:", result);
 
       if (result.success) {
+        console.log("Orders received:", result.orders);
         setOrders(result.orders);
         setFilteredOrders(result.orders);
       } else {
+        console.error("Failed to fetch orders:", result.error);
         setError(result.error || "Failed to fetch orders");
       }
     } catch (err) {
+      console.error("Error in fetchOrders:", err);
       setError("An error occurred while fetching orders");
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -44,7 +48,9 @@ const OrderManagement = () => {
     if (status === "All") {
       setFilteredOrders(orders);
     } else {
-      setFilteredOrders(orders.filter((order) => order.status === status));
+      // Convert status to lowercase to match user order status format
+      const statusLower = status.toLowerCase();
+      setFilteredOrders(orders.filter((order) => order.status.toLowerCase() === statusLower));
     }
   };
 
@@ -81,12 +87,13 @@ const OrderManagement = () => {
   };
 
   const getStatusClass = (status) => {
-    switch (status) {
-      case "Completed":
+    const statusLower = status.toLowerCase();
+    switch (statusLower) {
+      case "completed":
         return "status-completed";
-      case "Processing":
+      case "processing":
         return "status-processing";
-      case "Cancelled":
+      case "cancelled":
         return "status-cancelled";
       default:
         return "status-pending";
@@ -94,10 +101,11 @@ const OrderManagement = () => {
   };
 
   const getPaymentStatusClass = (paymentStatus) => {
-    switch (paymentStatus) {
-      case "Paid":
+    const statusLower = paymentStatus.toLowerCase();
+    switch (statusLower) {
+      case "paid":
         return "payment-paid";
-      case "Partially Paid":
+      case "partially paid":
         return "payment-partial";
       default:
         return "payment-unpaid";
@@ -177,24 +185,24 @@ const OrderManagement = () => {
             ) : (
               filteredOrders.map((order) => (
                 <tr key={order.orderId}>
-                  <td className="order-number">{order.orderNumber}</td>
-                  <td>{order.customerName}</td>
-                  <td>{order.customerPhone}</td>
-                  <td>{new Date(order.orderDate).toLocaleDateString()}</td>
-                  <td>{order.items.length} items</td>
-                  <td className="amount">₹{order.totalAmount.toFixed(2)}</td>
+                  <td className="order-number">{order.orderNumber || `ORD-${order.orderId?.slice(-8)}`}</td>
+                  <td>{order.customerName || order.userId || "Unknown"}</td>
+                  <td>{order.customerPhone || "N/A"}</td>
+                  <td>{order.orderDate ? new Date(order.orderDate).toLocaleDateString() : "N/A"}</td>
+                  <td>{(order.items || []).length} items</td>
+                  <td className="amount">₹{(order.totalAmount || 0).toFixed(2)}</td>
                   <td>
                     <span
-                      className={`status-badge ${getStatusClass(order.status)}`}
+                      className={`status-badge ${getStatusClass(order.status || "pending")}`}
                     >
-                      {order.status}
+                      {(order.status || "pending").charAt(0).toUpperCase() + (order.status || "pending").slice(1)}
                     </span>
                   </td>
                   <td>
                     <span
-                      className={`payment-badge ${getPaymentStatusClass(order.paymentStatus)}`}
+                      className={`payment-badge ${getPaymentStatusClass(order.paymentStatus || "pending")}`}
                     >
-                      {order.paymentStatus}
+                      {(order.paymentStatus || "pending").charAt(0).toUpperCase() + (order.paymentStatus || "pending").slice(1)}
                     </span>
                   </td>
                   <td>

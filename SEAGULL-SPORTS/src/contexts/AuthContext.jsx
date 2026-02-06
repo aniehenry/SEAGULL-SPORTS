@@ -27,22 +27,34 @@ export const AuthProvider = ({ children }) => {
         setUser(user);
 
         try {
-          // Fetch user data from Firestore
-          const userDocRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userDocRef);
+          // First check Admin collection for admin users
+          const adminDocRef = doc(db, "Admin", user.uid);
+          const adminDoc = await getDoc(adminDocRef);
 
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            const role = userData.role || "user";
+          if (adminDoc.exists()) {
+            const adminData = adminDoc.data();
+            const role = adminData.role || "admin";
             setUserRole(role);
-            console.log("✅ Role loaded from Firestore:", role);
-            console.log("📊 Full user data:", userData);
+            console.log("✅ Admin found in Admin collection:", role);
+            console.log("📊 Admin data:", adminData);
           } else {
-            // Fallback if user document doesn't exist
-            setUserRole("user");
-            console.log(
-              "⚠️ User document not found in Firestore, defaulting to user role",
-            );
+            // If not in Admin collection, check users collection
+            const userDocRef = doc(db, "users", user.uid);
+            const userDoc = await getDoc(userDocRef);
+
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              const role = userData.role || "user";
+              setUserRole(role);
+              console.log("✅ User found in users collection:", role);
+              console.log("📊 User data:", userData);
+            } else {
+              // Fallback if user document doesn't exist in either collection
+              setUserRole("user");
+              console.log(
+                "⚠️ User document not found in either collection, defaulting to user role",
+              );
+            }
           }
         } catch (error) {
           console.error("❌ Error fetching user data from Firestore:", error);

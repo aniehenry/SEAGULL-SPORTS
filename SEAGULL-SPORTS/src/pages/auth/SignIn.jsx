@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../../firebasecongif";
+import { useAuth } from "../../contexts/AuthContext";
 import "./SignIn.css";
 
 const SignIn = () => {
@@ -15,6 +16,33 @@ const SignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [touched, setTouched] = useState({});
   const navigate = useNavigate();
+  const { user, userRole, loading } = useAuth();
+
+  // Effect to handle navigation after successful authentication
+  useEffect(() => {
+    if (user && !loading && userRole !== null) {
+      console.log("=== NAVIGATION LOGIC ===");
+      console.log("User authenticated:", user.email);
+      console.log("User UID:", user.uid);
+      console.log("User role from context:", userRole);
+      console.log("User role type:", typeof userRole);
+      console.log("Role === 'admin':", userRole === "admin");
+      console.log("Role === 'user':", userRole === "user");
+      console.log("Loading state:", loading);
+      
+      // Navigate based on role
+      if (userRole === "admin") {
+        console.log("🔐 ADMIN DETECTED - Navigating to dashboard");
+        navigate("/admin/dashboard?redirect=signin");
+      } else {
+        console.log("👤 USER DETECTED - Navigating to home");
+        navigate("/user/home?redirect=signin");
+      }
+      
+      // Reset loading state after navigation
+      setIsLoading(false);
+    }
+  }, [user, userRole, loading, navigate]);
 
   // Validation functions
   const validateEmail = (email) => {
@@ -89,7 +117,7 @@ const SignIn = () => {
     setIsLoading(true);
 
     try {
-      // Firebase Authentication
+      // Firebase Authentication - let AuthContext handle role fetching and navigation
       const userCredential = await signInWithEmailAndPassword(
         auth,
         formData.email,
@@ -97,46 +125,11 @@ const SignIn = () => {
       );
 
       const user = userCredential.user;
-      console.log("User signed in:", user);
-
-      // Fetch user role from Firestore
-      try {
-        const userDocRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userDocRef);
-
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          const userRole = userData.role || "user";
-          console.log("User role:", userRole);
-          console.log("Full user data:", userData);
-
-          // Wait for auth context to be properly updated before navigating
-          const navigateWithRole = () => {
-            if (userRole === "admin") {
-              console.log("Navigating admin to dashboard");
-              navigate("/admin/dashboard?redirect=signin");
-            } else {
-              console.log("Navigating user to home");
-              navigate("/user/home?redirect=signin");
-            }
-          };
-
-          // Use a longer timeout to ensure auth context updates
-          setTimeout(navigateWithRole, 300);
-        } else {
-          console.log(
-            "User document not found, creating default user role and redirecting",
-          );
-          setTimeout(() => {
-            navigate("/user/home?redirect=signin");
-          }, 300);
-        }
-      } catch (fetchError) {
-        console.error("Error fetching user data:", fetchError);
-        setTimeout(() => {
-          navigate("/user/home?redirect=signin");
-        }, 300); // Default fallback
-      }
+      console.log("✅ User signed in successfully:", user.email);
+      console.log("🔄 AuthContext will handle role fetching and navigation...");
+      
+      // The useEffect above will handle navigation once AuthContext updates
+      
     } catch (err) {
       console.error("Firebase Auth Error:", err);
       let errorMessage = "Invalid email or password. Please try again.";
@@ -166,7 +159,6 @@ const SignIn = () => {
         ...prev,
         general: errorMessage,
       }));
-    } finally {
       setIsLoading(false);
     }
   };

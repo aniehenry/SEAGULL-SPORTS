@@ -106,12 +106,13 @@ const OrderViewScreen = () => {
   };
 
   const getStatusClass = (status) => {
-    switch (status) {
-      case "Completed":
+    const statusLower = (status || "").toLowerCase();
+    switch (statusLower) {
+      case "completed":
         return "status-completed";
-      case "Processing":
+      case "processing":
         return "status-processing";
-      case "Cancelled":
+      case "cancelled":
         return "status-cancelled";
       default:
         return "status-pending";
@@ -152,49 +153,49 @@ const OrderViewScreen = () => {
           <div className="card-header">
             <h2>Order Information</h2>
             <span className={`status-badge ${getStatusClass(order.status)}`}>
-              {order.status}
+              {(order.status || "pending").charAt(0).toUpperCase() + (order.status || "pending").slice(1)}
             </span>
           </div>
           <div className="card-body">
             <div className="info-row">
               <span className="info-label">Order Number:</span>
               <span className="info-value order-number">
-                {order.orderNumber}
+                {order.orderNumber || `ORD-${order.orderId?.slice(-8)}`}
               </span>
             </div>
             <div className="info-row">
               <span className="info-label">Order Date:</span>
               <span className="info-value">
-                {new Date(order.orderDate).toLocaleString()}
+                {order.orderDate ? new Date(order.orderDate).toLocaleString() : "N/A"}
               </span>
             </div>
             <div className="info-row">
               <span className="info-label">Order Status:</span>
               <div className="status-buttons">
                 <button
-                  className={`status-btn ${order.status === "Pending" ? "active" : ""}`}
-                  onClick={() => handleStatusChange("Pending")}
+                  className={`status-btn ${(order.status || "pending").toLowerCase() === "pending" ? "active" : ""}`}
+                  onClick={() => handleStatusChange("pending")}
                   disabled={updating}
                 >
                   Pending
                 </button>
                 <button
-                  className={`status-btn ${order.status === "Processing" ? "active" : ""}`}
-                  onClick={() => handleStatusChange("Processing")}
+                  className={`status-btn ${(order.status || "pending").toLowerCase() === "processing" ? "active" : ""}`}
+                  onClick={() => handleStatusChange("processing")}
                   disabled={updating}
                 >
                   Processing
                 </button>
                 <button
-                  className={`status-btn ${order.status === "Completed" ? "active" : ""}`}
-                  onClick={() => handleStatusChange("Completed")}
+                  className={`status-btn ${(order.status || "pending").toLowerCase() === "completed" ? "active" : ""}`}
+                  onClick={() => handleStatusChange("completed")}
                   disabled={updating}
                 >
                   Completed
                 </button>
                 <button
-                  className={`status-btn ${order.status === "Cancelled" ? "active" : ""}`}
-                  onClick={() => handleStatusChange("Cancelled")}
+                  className={`status-btn ${(order.status || "pending").toLowerCase() === "cancelled" ? "active" : ""}`}
+                  onClick={() => handleStatusChange("cancelled")}
                   disabled={updating}
                 >
                   Cancelled
@@ -205,22 +206,15 @@ const OrderViewScreen = () => {
               <span className="info-label">Payment Status:</span>
               <div className="status-buttons">
                 <button
-                  className={`payment-btn ${order.paymentStatus === "Unpaid" ? "active" : ""}`}
-                  onClick={() => handlePaymentStatusChange("Unpaid")}
+                  className={`payment-btn ${(order.paymentStatus || "pending").toLowerCase() === "pending" ? "active" : ""}`}
+                  onClick={() => handlePaymentStatusChange("pending")}
                   disabled={updating}
                 >
-                  Unpaid
+                  Pending
                 </button>
                 <button
-                  className={`payment-btn ${order.paymentStatus === "Partially Paid" ? "active" : ""}`}
-                  onClick={() => handlePaymentStatusChange("Partially Paid")}
-                  disabled={updating}
-                >
-                  Partially Paid
-                </button>
-                <button
-                  className={`payment-btn ${order.paymentStatus === "Paid" ? "active" : ""}`}
-                  onClick={() => handlePaymentStatusChange("Paid")}
+                  className={`payment-btn ${(order.paymentStatus || "pending").toLowerCase() === "paid" ? "active" : ""}`}
+                  onClick={() => handlePaymentStatusChange("paid")}
                   disabled={updating}
                 >
                   Paid
@@ -237,16 +231,22 @@ const OrderViewScreen = () => {
           </div>
           <div className="card-body">
             <div className="info-row">
-              <span className="info-label">Name:</span>
-              <span className="info-value">{order.customerName}</span>
+              <span className="info-label">Customer ID:</span>
+              <span className="info-value">{order.userId || order.customerName}</span>
             </div>
             <div className="info-row">
               <span className="info-label">Phone:</span>
-              <span className="info-value">{order.customerPhone}</span>
+              <span className="info-value">{order.customerPhone || "N/A"}</span>
             </div>
             <div className="info-row">
               <span className="info-label">Email:</span>
               <span className="info-value">{order.customerEmail || "N/A"}</span>
+            </div>
+            <div className="info-row">
+              <span className="info-label">Customer Notes:</span>
+              <span className="info-value">
+                {order.customerNotes || "No notes provided"}
+              </span>
             </div>
             {order.deliveryAddress && (
               <div className="info-row">
@@ -266,7 +266,8 @@ const OrderViewScreen = () => {
             <table className="items-table">
               <thead>
                 <tr>
-                  <th>Item Name</th>
+                  <th>Item</th>
+                  <th>Image</th>
                   <th>Quantity</th>
                   <th>Price</th>
                   <th>Total</th>
@@ -275,21 +276,44 @@ const OrderViewScreen = () => {
               <tbody>
                 {order.items.map((item, index) => (
                   <tr key={index}>
-                    <td>{item.itemName}</td>
+                    <td>
+                      <div className="item-details">
+                        <div className="item-name">{item.name}</div>
+                        <div className="item-category">{item.category}</div>
+                      </div>
+                    </td>
+                    <td>
+                      <img 
+                        src={item.image} 
+                        alt={item.name} 
+                        className="item-image"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/50x50?text=No+Image';
+                        }}
+                      />
+                    </td>
                     <td>{item.quantity}</td>
                     <td>₹{item.price.toFixed(2)}</td>
-                    <td>₹{item.total.toFixed(2)}</td>
+                    <td>₹{(item.price * item.quantity).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
+                {order.subtotal && (
+                  <tr>
+                    <td colSpan="4" className="total-label">Subtotal:</td>
+                    <td className="total-amount">₹{order.subtotal.toFixed(2)}</td>
+                  </tr>
+                )}
+                {order.tax > 0 && (
+                  <tr>
+                    <td colSpan="4" className="total-label">Tax:</td>
+                    <td className="total-amount">₹{order.tax.toFixed(2)}</td>
+                  </tr>
+                )}
                 <tr>
-                  <td colSpan="3" className="total-label">
-                    Total Amount:
-                  </td>
-                  <td className="total-amount">
-                    ₹{order.totalAmount.toFixed(2)}
-                  </td>
+                  <td colSpan="4" className="total-label">Total Amount:</td>
+                  <td className="total-amount">₹{order.totalAmount.toFixed(2)}</td>
                 </tr>
               </tfoot>
             </table>

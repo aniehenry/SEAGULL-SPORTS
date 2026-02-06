@@ -1,321 +1,111 @@
+import { db } from "../../../../firebasecongif";
 import {
   collection,
-  doc,
-  addDoc,
-  updateDoc,
-  deleteDoc,
   getDocs,
   getDoc,
+  doc,
   query,
-  where,
   orderBy,
-  limit,
-  startAfter,
-  serverTimestamp,
+  where,
 } from "firebase/firestore";
-import { db } from "../../../../firebasecongif";
 import Product from "../models/Product";
 
-class ProductService {
-  constructor() {
-    this.collectionName = "products";
-    this.collection = collection(db, this.collectionName);
-  }
-
-  // Create a new product
-  async createProduct(productData) {
+const productService = {
+  async getAllProducts() {
     try {
-      const product = new Product({
-        ...productData,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-
-      const validation = product.validate();
-      if (!validation.isValid) {
-        return {
-          success: false,
-          error: "Validation failed",
-          validationErrors: validation.errors,
-        };
+      console.log("🔍 Fetching all products from all admins...");
+      
+      // Get all admin users first
+      const adminCollectionRef = collection(db, "Admin");
+      const adminSnapshot = await getDocs(adminCollectionRef);
+      
+      let allProducts = [];
+      
+      // Loop through each admin and get their items
+      for (const adminDoc of adminSnapshot.docs) {
+        const adminId = adminDoc.id;
+        console.log(`📂 Checking admin: ${adminId}`);
+        
+        try {
+          const itemsRef = collection(db, "Admin", adminId, "items");
+          const itemsSnapshot = await getDocs(itemsRef);
+          
+          const adminProducts = itemsSnapshot.docs.map((doc) => {
+            const productData = Product.fromFirestore(doc);
+            // Add admin info to track which admin owns this product
+            productData.adminId = adminId;
+            return productData;
+          });
+          
+          console.log(`✅ Found ${adminProducts.length} products from admin ${adminId}`);
+          allProducts = [...allProducts, ...adminProducts];
+        } catch (error) {
+          console.log(`⚠️ No items found for admin ${adminId}:`, error.message);
+        }
       }
-
-      const docRef = await addDoc(this.collection, product.toJSON());
-
-      return {
-        success: true,
-        data: { ...product.toJSON(), id: docRef.id },
-        message: "Product created successfully",
-      };
+      
+      console.log(`🎯 Total products fetched: ${allProducts.length}`);
+      return allProducts;
     } catch (error) {
-      console.error("Error creating product:", error);
-      return {
-        success: false,
-        error: error.message || "Failed to create product",
-      };
+      console.error("❌ Error fetching products:", error);
+      throw error;
     }
-  }
+  },
 
-  // Update existing product
-  async updateProduct(id, productData) {
+  async getProductById(adminId, productId) {
     try {
-      const product = new Product({
-        ...productData,
-        id,
-        updatedAt: serverTimestamp(),
-      });
-
-      const validation = product.validate();
-      if (!validation.isValid) {
-        return {
-          success: false,
-          error: "Validation failed",
-          validationErrors: validation.errors,
-        };
-      }
-
-      const productRef = doc(db, this.collectionName, id);
+      const productRef = doc(db, "Admin", adminId, "items", productId);
       const productDoc = await getDoc(productRef);
-
-      if (!productDoc.exists()) {
-        return {
-          success: false,
-          error: "Product not found",
-        };
+      
+      if (productDoc.exists()) {
+        const product = Product.fromFirestore(productDoc);
+        product.adminId = adminId;
+        return product;
       }
-
-      await updateDoc(productRef, product.toJSON());
-
-      return {
-        success: true,
-        data: product.toJSON(),
-        message: "Product updated successfully",
-      };
-    } catch (error) {
-      console.error("Error updating product:", error);
-      return {
-        success: false,
-        error: error.message || "Failed to update product",
-      };
-    }
-  }
-
-  // Delete product
-  async deleteProduct(id) {
-    try {
-      const productRef = doc(db, this.collectionName, id);
-      const productDoc = await getDoc(productRef);
-
-      if (!productDoc.exists()) {
-        return {
-          success: false,
-          error: "Product not found",
-        };
-      }
-
-      await deleteDoc(productRef);
-
-      return {
-        success: true,
-        message: "Product deleted successfully",
-      };
-    } catch (error) {
-      console.error("Error deleting product:", error);
-      return {
-        success: false,
-        error: error.message || "Failed to delete product",
-      };
-    }
-  }
-
-  // Get product by ID
-  async getProductById(id) {
-    try {
-      const productRef = doc(db, this.collectionName, id);
-      const productDoc = await getDoc(productRef);
-
-      if (!productDoc.exists()) {
-        return {
-          success: false,
-          error: "Product not found",
-        };
-      }
-
-      const productData = { id: productDoc.id, ...productDoc.data() };
-      const product = Product.fromJSON(productData);
-
-      return {
-        success: true,
-        data: product,
-      };
+      return null;
     } catch (error) {
       console.error("Error fetching product:", error);
-      return {
-        success: false,
-        error: error.message || "Failed to fetch product",
-      };
+      throw error;
     }
-  }
+  },
 
-  // Get all products with optional filters
-  async getProducts(filters = {}) {
+  async getProductsByCategory(category) {
     try {
-      let q = query(this.collection);
-
-      // Apply filters
-      if (filters.category) {
-        q = query(q, where("category", "==", filters.category));
-      }
-
-      if (filters.status) {
-        q = query(q, where("status", "==", filters.status));
-      }
-
-      if (filters.brand) {
-        q = query(q, where("brand", "==", filters.brand));
-      }
-
-      // Apply ordering
-      const orderField = filters.orderBy || "createdAt";
-      const orderDirection = filters.orderDirection || "desc";
-      q = query(q, orderBy(orderField, orderDirection));
-
-      // Apply pagination
-      if (filters.limit) {
-        q = query(q, limit(filters.limit));
-      }
-
-      if (filters.startAfter) {
-        q = query(q, startAfter(filters.startAfter));
-      }
-
-      const querySnapshot = await getDocs(q);
-      const products = [];
-
-      querySnapshot.forEach((doc) => {
-        const productData = { id: doc.id, ...doc.data() };
-        const product = Product.fromJSON(productData);
-        products.push(product);
-      });
-
-      return {
-        success: true,
-        data: products,
-        count: products.length,
-      };
+      const allProducts = await this.getAllProducts();
+      return allProducts.filter(product => 
+        product.category.toLowerCase().includes(category.toLowerCase())
+      );
     } catch (error) {
-      console.error("Error fetching products:", error);
-      return {
-        success: false,
-        error: error.message || "Failed to fetch products",
-      };
+      console.error("Error fetching products by category:", error);
+      throw error;
     }
-  }
+  },
 
-  // Search products by name
   async searchProducts(searchTerm) {
     try {
-      const querySnapshot = await getDocs(this.collection);
-      const products = [];
-
-      querySnapshot.forEach((doc) => {
-        const productData = { id: doc.id, ...doc.data() };
-        const product = Product.fromJSON(productData);
-
-        // Simple text search in name and description
-        const searchLower = searchTerm.toLowerCase();
-        if (
-          product.name.toLowerCase().includes(searchLower) ||
-          product.description.toLowerCase().includes(searchLower) ||
-          product.brand.toLowerCase().includes(searchLower)
-        ) {
-          products.push(product);
-        }
-      });
-
-      return {
-        success: true,
-        data: products,
-        count: products.length,
-      };
+      const allProducts = await this.getAllProducts();
+      const lowercaseSearchTerm = searchTerm.toLowerCase();
+      
+      return allProducts.filter(product => 
+        product.name.toLowerCase().includes(lowercaseSearchTerm) ||
+        product.description.toLowerCase().includes(lowercaseSearchTerm) ||
+        product.category.toLowerCase().includes(lowercaseSearchTerm)
+      );
     } catch (error) {
       console.error("Error searching products:", error);
-      return {
-        success: false,
-        error: error.message || "Failed to search products",
-      };
+      throw error;
     }
-  }
+  },
 
-  // Get products by category
-  async getProductsByCategory(category) {
-    return this.getProducts({ category });
-  }
-
-  // Get featured products
-  async getFeaturedProducts(limitCount = 10) {
+  async getAvailableProducts() {
     try {
-      const q = query(
-        this.collection,
-        where("status", "==", "active"),
-        orderBy("rating", "desc"),
-        limit(limitCount),
-      );
-
-      const querySnapshot = await getDocs(q);
-      const products = [];
-
-      querySnapshot.forEach((doc) => {
-        const productData = { id: doc.id, ...doc.data() };
-        const product = Product.fromJSON(productData);
-        products.push(product);
-      });
-
-      return {
-        success: true,
-        data: products,
-        count: products.length,
-      };
+      const allProducts = await this.getAllProducts();
+      return allProducts.filter(product => product.isInStock());
     } catch (error) {
-      console.error("Error fetching featured products:", error);
-      return {
-        success: false,
-        error: error.message || "Failed to fetch featured products",
-      };
+      console.error("Error fetching available products:", error);
+      throw error;
     }
   }
+};
 
-  // Update product stock
-  async updateStock(id, newStock) {
-    try {
-      const productRef = doc(db, this.collectionName, id);
-      const productDoc = await getDoc(productRef);
-
-      if (!productDoc.exists()) {
-        return {
-          success: false,
-          error: "Product not found",
-        };
-      }
-
-      await updateDoc(productRef, {
-        stockQuantity: newStock,
-        updatedAt: serverTimestamp(),
-      });
-
-      return {
-        success: true,
-        message: "Stock updated successfully",
-      };
-    } catch (error) {
-      console.error("Error updating stock:", error);
-      return {
-        success: false,
-        error: error.message || "Failed to update stock",
-      };
-    }
-  }
-}
-
-const productService = new ProductService();
 export default productService;

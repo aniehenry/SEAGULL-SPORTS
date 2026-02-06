@@ -18,14 +18,20 @@ const ItemManagement = () => {
     setLoading(true);
     setError(null);
     try {
+      console.log("🔍 Fetching items from subcollection...");
       const result = await itemController.fetchItems();
+      console.log("📊 Fetch result:", result);
+      
       if (result.success) {
+        console.log("✅ Items fetched successfully:", result.data.length, "items");
         setItems(result.data);
       } else {
+        console.error("❌ Failed to fetch items:", result.error);
         setError(result.error);
       }
-    } catch {
-      setError("Failed to fetch items");
+    } catch (error) {
+      console.error("❌ Fetch items error:", error);
+      setError("Failed to fetch items: " + error.message);
     } finally {
       setLoading(false);
     }

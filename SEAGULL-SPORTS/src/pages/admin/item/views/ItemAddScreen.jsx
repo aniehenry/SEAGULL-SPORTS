@@ -7,7 +7,8 @@ import "./ItemAddScreen.css";
 // Configure Cloudinary
 const CLOUDINARY_CONFIG = {
   cloudName: "dwhjwkopp",
-  uploadPreset: "ml_default", // You'll need to create this in Cloudinary dashboard
+  uploadPreset: "seagull_items", // You need to create this preset in Cloudinary
+  apiKey: "755862577596328", // Your API key from the screenshot
 };
 
 const ItemAddScreen = () => {
@@ -70,8 +71,24 @@ const ItemAddScreen = () => {
     const files = Array.from(event.target.files);
     if (files.length === 0) return;
 
+    // Validate file types and sizes
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const maxSize = 5 * 1024 * 1024; // 5MB limit
+    
+    for (const file of files) {
+      if (!validTypes.includes(file.type)) {
+        alert(`Invalid file type: ${file.name}. Please upload JPEG, PNG, or WebP images.`);
+        return;
+      }
+      if (file.size > maxSize) {
+        alert(`File too large: ${file.name}. Maximum size is 5MB.`);
+        return;
+      }
+    }
+
     setUploading(true);
     const uploadedImages = [];
+    let errorCount = 0;
 
     try {
       for (const file of files) {
@@ -79,6 +96,7 @@ const ItemAddScreen = () => {
         formData.append("file", file);
         formData.append("upload_preset", CLOUDINARY_CONFIG.uploadPreset);
         formData.append("cloud_name", CLOUDINARY_CONFIG.cloudName);
+        formData.append("folder", "seagull-sports/items"); // Organize in folders
 
         const response = await fetch(
           `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
@@ -94,23 +112,35 @@ const ItemAddScreen = () => {
             url: data.secure_url,
             public_id: data.public_id,
             originalName: file.name,
+            width: data.width,
+            height: data.height,
           });
+          console.log("✅ Image uploaded:", data.secure_url);
         } else {
-          throw new Error("Upload failed");
+          errorCount++;
+          console.error("❌ Upload failed for:", file.name);
         }
       }
 
-      setFormData((prev) => ({
-        ...prev,
-        images: [...prev.images, ...uploadedImages],
-      }));
+      if (uploadedImages.length > 0) {
+        setFormData((prev) => ({
+          ...prev,
+          images: [...prev.images, ...uploadedImages],
+        }));
 
-      alert(`${uploadedImages.length} image(s) uploaded successfully!`);
+        const successMsg = `${uploadedImages.length} image(s) uploaded successfully!`;
+        const errorMsg = errorCount > 0 ? ` ${errorCount} upload(s) failed.` : '';
+        alert(successMsg + errorMsg);
+      } else {
+        alert("All uploads failed. Please try again.");
+      }
     } catch (error) {
       console.error("Error uploading images:", error);
-      alert("Failed to upload images. Please try again.");
+      alert("Failed to upload images. Please check your connection and try again.");
     } finally {
       setUploading(false);
+      // Clear the file input
+      event.target.value = '';
     }
   };
 
@@ -474,24 +504,35 @@ const ItemAddScreen = () => {
               <label htmlFor="images">
                 Upload Images <span className="optional">(Optional)</span>
               </label>
-              <input
-                type="file"
-                id="images"
-                name="images"
-                multiple
-                accept="image/*"
-                onChange={handleImageUpload}
-                disabled={uploading}
-                className="file-input"
-              />
+              <div className="file-input-container">
+                <input
+                  type="file"
+                  id="images"
+                  name="images"
+                  multiple
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  onChange={handleImageUpload}
+                  disabled={uploading}
+                  className="file-input"
+                />
+                <div className="file-input-help">
+                  <small>
+                    📝 Supported formats: JPEG, PNG, WebP • Max size: 5MB per image • Multiple images allowed
+                  </small>
+                </div>
+              </div>
               {uploading && (
-                <div className="upload-status">Uploading images...</div>
+                <div className="upload-status">
+                  <div className="upload-spinner"></div>
+                  Uploading images to Cloudinary...
+                </div>
               )}
             </div>
 
             {/* Display uploaded images */}
             {formData.images.length > 0 && (
               <div className="uploaded-images">
+                <h4>Uploaded Images ({formData.images.length})</h4>
                 <div className="images-grid">
                   {formData.images.map((image, index) => (
                     <div key={index} className="image-preview">
@@ -499,6 +540,7 @@ const ItemAddScreen = () => {
                         src={image.url}
                         alt={`Product ${index + 1}`}
                         className="preview-img"
+                        loading="lazy"
                       />
                       <button
                         type="button"
@@ -508,7 +550,16 @@ const ItemAddScreen = () => {
                       >
                         ×
                       </button>
-                      <div className="image-name">{image.originalName}</div>
+                      <div className="image-info">
+                        <div className="image-name" title={image.originalName}>
+                          {image.originalName}
+                        </div>
+                        {image.width && image.height && (
+                          <div className="image-dimensions">
+                            {image.width} × {image.height}px
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

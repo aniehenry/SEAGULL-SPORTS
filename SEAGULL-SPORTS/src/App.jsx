@@ -5,12 +5,14 @@ import {
   Navigate,
 } from "react-router-dom";
 import AdminLayout from "./components/admin/AdminLayout";
+import UserLayout from "./components/user/UserLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import PartyManagement from "./pages/admin/party/views/PartyManagement";
 import PartyAddScreen from "./pages/admin/party/views/PartyAddScreen";
 import ItemManagement from "./pages/admin/item/views/ItemManagement";
 import ItemAddScreen from "./pages/admin/item/views/ItemAddScreen";
 import ProductShop from "./pages/user/product/views/ProductShop";
+import CartView from "./pages/user/cart/views/CartView";
 import InvoiceManagement from "./pages/admin/invoice/views/InvoiceManagement";
 import InvoiceAddScreen from "./pages/admin/invoice/views/InvoiceAddScreen";
 import PurchaseManagement from "./pages/admin/purchase/views/PurchaseManagement";
@@ -22,6 +24,7 @@ import OrderViewScreen from "./pages/admin/order/views/OrderViewScreen";
 import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
 import UserHome from "./pages/user/UserHome";
+import UserHomeContent from "./pages/user/UserHomeContent";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import "./App.css";
 
@@ -135,21 +138,17 @@ function AppContent() {
           }
         />
         <Route
-          path="/user/home"
+          path="/user/*"
           element={
             <ProtectedRoute requiredRole="user">
-              <UserHome />
+              <UserLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/user/products"
-          element={
-            <ProtectedRoute requiredRole="user">
-              <ProductShop />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route path="home" element={<UserHomeContent />} />
+          <Route path="products" element={<ProductShop />} />
+          <Route path="cart" element={<CartView />} />
+        </Route>
         <Route
           path="/admin/*"
           element={

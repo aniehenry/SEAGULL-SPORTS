@@ -59,6 +59,7 @@ class Item {
       sellingPrice: Number(this.sellingPrice),
       gstPercentage: Number(this.gstPercentage),
       description: this.description,
+      images: this.images || [], // Include images array
       updatedAt: new Date(),
       ...(this.createdAt ? {} : { createdAt: new Date() }),
     };

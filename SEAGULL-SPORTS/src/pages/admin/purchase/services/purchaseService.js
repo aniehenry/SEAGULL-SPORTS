@@ -16,7 +16,7 @@ import itemService from "../../item/services/itemService";
 const getPurchasesCollectionRef = () => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
-  return collection(db, "admin", user.uid, "purchases");
+  return collection(db, "Admin", user.uid, "purchases");
 };
 
 const purchaseService = {
@@ -105,7 +105,7 @@ const purchaseService = {
         }
       }
 
-      const docRef = doc(db, "admin", user.uid, "purchases", purchaseId);
+      const docRef = doc(db, "Admin", user.uid, "purchases", purchaseId);
       await updateDoc(docRef, purchase.toFirestore());
     } catch (error) {
       console.error("Error updating purchase:", error);
@@ -128,7 +128,7 @@ const purchaseService = {
         }
       }
 
-      const docRef = doc(db, "admin", user.uid, "purchases", purchaseId);
+      const docRef = doc(db, "Admin", user.uid, "purchases", purchaseId);
       await deleteDoc(docRef);
     } catch (error) {
       console.error("Error deleting purchase:", error);

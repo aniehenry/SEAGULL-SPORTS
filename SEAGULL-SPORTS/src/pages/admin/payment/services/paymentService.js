@@ -16,7 +16,7 @@ import purchaseService from "../../purchase/services/purchaseService";
 const getPaymentsCollectionRef = () => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
-  return collection(db, "admin", user.uid, "payments");
+  return collection(db, "Admin", user.uid, "payments");
 };
 
 const paymentService = {
@@ -37,7 +37,7 @@ const paymentService = {
       const user = auth.currentUser;
       if (!user) throw new Error("User not authenticated");
 
-      const docRef = doc(db, "admin", user.uid, "payments", paymentId);
+      const docRef = doc(db, "Admin", user.uid, "payments", paymentId);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
@@ -167,7 +167,7 @@ const paymentService = {
         });
       }
 
-      const docRef = doc(db, "admin", user.uid, "payments", paymentId);
+      const docRef = doc(db, "Admin", user.uid, "payments", paymentId);
       await deleteDoc(docRef);
     } catch (error) {
       console.error("Error deleting payment:", error);

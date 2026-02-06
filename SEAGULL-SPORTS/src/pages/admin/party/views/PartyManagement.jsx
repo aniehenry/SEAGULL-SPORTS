@@ -19,14 +19,20 @@ const PartyManagement = () => {
     setLoading(true);
     setError(null);
     try {
+      console.log("🔍 Fetching parties from subcollection...");
       const result = await partyController.fetchParties();
+      console.log("📊 Party fetch result:", result);
+      
       if (result.success) {
+        console.log("✅ Parties fetched successfully:", result.data.length, "parties");
         setParties(result.data);
       } else {
+        console.error("❌ Failed to fetch parties:", result.error);
         setError(result.error);
       }
-    } catch {
-      setError("Failed to fetch parties");
+    } catch (error) {
+      console.error("❌ Fetch parties error:", error);
+      setError("Failed to fetch parties: " + error.message);
     } finally {
       setLoading(false);
     }

@@ -370,14 +370,57 @@
   background: #dc2626;
 }
 
-.image-name {
+.image-info {
   padding: 8px;
+}
+
+.image-name {
   font-size: 12px;
   color: #6b7280;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.image-dimensions {
+  font-size: 10px;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.file-input-container {
+  position: relative;
+}
+
+.file-input-help {
+  margin-top: 8px;
+}
+
+.file-input-help small {
+  color: #6b7280;
+  display: block;
+}
+
+.upload-status {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.upload-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {

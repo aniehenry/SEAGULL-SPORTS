@@ -19,7 +19,7 @@ class PartyService {
     if (!userId) {
       throw new Error("User not authenticated");
     }
-    return collection(db, "admin", userId, "parties");
+    return collection(db, "Admin", userId, "parties");
   }
 
   // Get all parties
