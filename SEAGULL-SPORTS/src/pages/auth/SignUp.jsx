@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "../../firebasecongif";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "../../firebasecongif";
 import "./SignUp.css";
 
 const SignUp = () => {
@@ -169,22 +170,43 @@ const SignUp = () => {
 
       console.log("User profile updated with name:", user.displayName);
 
-      // For demo purposes, we'll assume all registered users get admin role
-      // In a real app, you'd set custom claims or save role info to Firestore
-      const userRole = "admin"; // This should come from your registration system
+      // Determine user role based on email or create admin accounts
+      const adminEmails = [
+        "admin@seagullsports.com",
+        "manager@seagullsports.com",
+        "owner@seagullsports.com",
+      ];
 
-      if (userRole !== "admin") {
-        setErrors((prev) => ({
-          ...prev,
-          general: "Registration failed. Only admin accounts are allowed.",
-        }));
-        return;
+      const userRole = adminEmails.includes(formData.email.toLowerCase())
+        ? "admin"
+        : "user";
+
+      // Save user data to Firestore database
+      const userData = {
+        uid: user.uid,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        displayName: `${formData.firstName} ${formData.lastName}`,
+        role: userRole, // Assign role based on email
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        isActive: true,
+      };
+
+      // Create user document in Firestore
+      await setDoc(doc(db, "users", user.uid), userData);
+
+      console.log("User data saved to Firestore:", userData);
+
+      // Redirect based on user role
+      if (userRole === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/user/home");
       }
-
-      // Redirect to admin dashboard after successful signup
-      navigate("/admin/dashboard");
     } catch (err) {
-      console.error("Firebase Auth Error:", err);
+      console.error("Sign up error:", err);
       let errorMessage = "Registration failed. Please try again.";
 
       // Handle specific Firebase auth errors
@@ -201,6 +223,9 @@ const SignUp = () => {
           break;
         case "auth/network-request-failed":
           errorMessage = "Network error. Please check your connection.";
+          break;
+        case "permission-denied":
+          errorMessage = "Database error. Please try again.";
           break;
         default:
           errorMessage = "Registration failed. Please try again.";
@@ -257,12 +282,16 @@ const SignUp = () => {
                   className={`form-group ${errors.lastName && touched.lastName ? "has-error" : ""}`}
                 >
                   <label className="form-label">Last Name</label>
-                  type="text" name="lastName" className=
-                  {`form-input ${errors.lastName && touched.lastName ? "error" : ""}`}
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  onBlur={handleInputBlur}
-                  required placeholder="Last name"
+                  <input
+                    type="text"
+                    name="lastName"
+                    className={`form-input ${errors.lastName && touched.lastName ? "error" : ""}`}
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    onBlur={handleInputBlur}
+                    required
+                    placeholder="Last name"
+                  />
                   {errors.lastName && touched.lastName && (
                     <span className="error-message">{errors.lastName}</span>
                   )}
@@ -354,12 +383,6 @@ const SignUp = () => {
       </div>
 
       <div className="auth-right-panel">
-        <div className="floating-shapes">
-          <div className="shape"></div>
-          <div className="shape"></div>
-          <div className="shape"></div>
-        </div>
-
         <div className="content-panel">
           <h2 className="brand-logo">SEAGULL-SPORTS</h2>
           <p className="brand-tagline">

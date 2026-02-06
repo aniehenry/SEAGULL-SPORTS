@@ -1,12 +1,22 @@
 import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import "./Sidebar.css";
 
 const Sidebar = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
-  const handleLogout = () => {
-    // TODO: Implement actual logout logic with Firebase
-    navigate("/signin");
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/signin");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  const goToUserHome = () => {
+    navigate("/user/home");
   };
 
   return (
@@ -97,6 +107,10 @@ const Sidebar = () => {
 
       {/* Logout at bottom */}
       <div className="sidebar-footer">
+        <button className="nav-item home-btn" onClick={goToUserHome}>
+          <span className="nav-icon">🏪</span>
+          <span className="nav-text">User Shop</span>
+        </button>
         <button className="nav-item logout-btn" onClick={handleLogout}>
           <span className="nav-icon">🚪</span>
           <span className="nav-text">Logout</span>

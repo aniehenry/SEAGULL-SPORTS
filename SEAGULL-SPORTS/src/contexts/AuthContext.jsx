@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../firebasecongif";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../firebasecongif";
 
 const AuthContext = createContext();
 
@@ -19,16 +20,41 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log("=== AUTH STATE CHANGED ===");
+      console.log("User:", user ? user.email : "None");
+
       if (user) {
         setUser(user);
-        // For demo purposes, set all authenticated users as admin
-        // In a real app, you'd fetch this from your database
-        setUserRole("admin");
+
+        try {
+          // Fetch user data from Firestore
+          const userDocRef = doc(db, "users", user.uid);
+          const userDoc = await getDoc(userDocRef);
+
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const role = userData.role || "user";
+            setUserRole(role);
+            console.log("✅ Role loaded from Firestore:", role);
+            console.log("📊 Full user data:", userData);
+          } else {
+            // Fallback if user document doesn't exist
+            setUserRole("user");
+            console.log(
+              "⚠️ User document not found in Firestore, defaulting to user role",
+            );
+          }
+        } catch (error) {
+          console.error("❌ Error fetching user data from Firestore:", error);
+          setUserRole("user"); // Fallback role
+        }
       } else {
+        console.log("🚪 User logged out");
         setUser(null);
         setUserRole(null);
       }
       setLoading(false);
+      console.log("=== AUTH STATE UPDATE COMPLETE ===");
     });
 
     return () => unsubscribe();

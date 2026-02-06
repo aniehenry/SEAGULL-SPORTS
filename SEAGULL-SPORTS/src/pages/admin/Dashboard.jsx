@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import itemController from "./item/controllers/itemController";
 import invoiceController from "./invoice/controllers/invoiceController";
 import purchaseController from "./purchase/controllers/purchaseController";
@@ -8,7 +9,19 @@ import paymentController from "./payment/controllers/paymentController";
 import "./Dashboard.css";
 
 const Dashboard = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, userRole } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect non-admin users who accidentally access admin dashboard
+  useEffect(() => {
+    if (userRole && userRole !== "admin") {
+      console.log(
+        "Non-admin user detected on admin page, redirecting to user home",
+      );
+      navigate("/user/home", { replace: true });
+    }
+  }, [userRole, navigate]);
+
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalPurchase: 0,
@@ -21,17 +34,24 @@ const Dashboard = () => {
   const [recentActivities, setRecentActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (currentUser) {
-      fetchDashboardData();
-    } else {
-      setLoading(false);
+  const handleActivityClick = (activity) => {
+    if (activity.type === "Invoice") {
+      navigate("/admin/invoices");
+    } else if (activity.type === "Purchase") {
+      navigate("/admin/purchases");
+    } else if (activity.type === "Order") {
+      navigate(`/admin/orders/${activity.id}`);
     }
-  }, [currentUser]);
+  };
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     console.log("=== DASHBOARD DATA FETCH START ===");
     console.log("Current User:", currentUser);
+
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     try {
@@ -102,6 +122,7 @@ const Dashboard = () => {
       if (invRes.data) {
         invRes.data.slice(-3).forEach((inv) =>
           activities.push({
+            id: inv.id,
             date: inv.invoiceDate,
             type: "Invoice",
             description: `${inv.invoiceNumber} - ${inv.partyName}`,
@@ -114,6 +135,7 @@ const Dashboard = () => {
       if (purRes.data) {
         purRes.data.slice(-3).forEach((pur) =>
           activities.push({
+            id: pur.id,
             date: pur.purchaseDate,
             type: "Purchase",
             description: `${pur.purchaseNumber} - ${pur.partyName}`,
@@ -126,6 +148,7 @@ const Dashboard = () => {
       if (ordRes.orders) {
         ordRes.orders.slice(-3).forEach((ord) =>
           activities.push({
+            id: ord.id,
             date: ord.orderDate,
             type: "Order",
             description: `${ord.orderNumber} - ${ord.partyName || "Walk-in"}`,
@@ -146,7 +169,11 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   return (
     <div className="dashboard-container">
@@ -203,7 +230,11 @@ const Dashboard = () => {
                     </tr>
                   ) : (
                     recentActivities.map((activity, index) => (
-                      <tr key={index}>
+                      <tr
+                        key={index}
+                        onClick={() => handleActivityClick(activity)}
+                        className="activity-row"
+                      >
                         <td>{new Date(activity.date).toLocaleDateString()}</td>
                         <td>{activity.type}</td>
                         <td>{activity.description}</td>

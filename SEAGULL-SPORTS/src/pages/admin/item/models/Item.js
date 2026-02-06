@@ -8,6 +8,7 @@ class Item {
     this.sellingPrice = data.sellingPrice || 0;
     this.gstPercentage = data.gstPercentage || 0;
     this.description = data.description || "";
+    this.images = data.images || []; // Array of image objects with url, public_id, originalName
     this.createdAt = data.createdAt || new Date();
     this.updatedAt = data.updatedAt || new Date();
   }

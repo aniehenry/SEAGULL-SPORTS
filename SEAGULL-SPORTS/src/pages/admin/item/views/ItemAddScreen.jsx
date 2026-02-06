@@ -4,6 +4,12 @@ import itemController from "../controllers/itemController";
 import itemService from "../services/itemService";
 import "./ItemAddScreen.css";
 
+// Configure Cloudinary
+const CLOUDINARY_CONFIG = {
+  cloudName: "dwhjwkopp",
+  uploadPreset: "ml_default", // You'll need to create this in Cloudinary dashboard
+};
+
 const ItemAddScreen = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -17,9 +23,11 @@ const ItemAddScreen = () => {
     sellingPrice: "",
     gstPercentage: "",
     description: "",
+    images: [], // Array of image URLs
   });
 
   const [errors, setErrors] = useState({});
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -35,6 +43,7 @@ const ItemAddScreen = () => {
               sellingPrice: item.sellingPrice || "",
               gstPercentage: item.gstPercentage || "",
               description: item.description || "",
+              images: item.images || [],
             });
           }
         } catch (error) {
@@ -54,6 +63,63 @@ const ItemAddScreen = () => {
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
+  };
+
+  // Handle image upload to Cloudinary
+  const handleImageUpload = async (event) => {
+    const files = Array.from(event.target.files);
+    if (files.length === 0) return;
+
+    setUploading(true);
+    const uploadedImages = [];
+
+    try {
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", CLOUDINARY_CONFIG.uploadPreset);
+        formData.append("cloud_name", CLOUDINARY_CONFIG.cloudName);
+
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
+          {
+            method: "POST",
+            body: formData,
+          },
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          uploadedImages.push({
+            url: data.secure_url,
+            public_id: data.public_id,
+            originalName: file.name,
+          });
+        } else {
+          throw new Error("Upload failed");
+        }
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, ...uploadedImages],
+      }));
+
+      alert(`${uploadedImages.length} image(s) uploaded successfully!`);
+    } catch (error) {
+      console.error("Error uploading images:", error);
+      alert("Failed to upload images. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Remove image from the list
+  const removeImage = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
   };
 
   const validateForm = () => {
@@ -143,6 +209,7 @@ const ItemAddScreen = () => {
               sellingPrice: "",
               gstPercentage: "",
               description: "",
+              images: [],
             });
             setErrors({});
           } else {
@@ -217,14 +284,12 @@ const ItemAddScreen = () => {
                 className={errors.category ? "error" : ""}
               >
                 <option value="">Select category</option>
-                <option value="Bat">Bat</option>
-                <option value="Ball">Ball</option>
-                <option value="Jersey">Jersey</option>
-                <option value="Gloves">Gloves</option>
-                <option value="Pads">Pads</option>
-                <option value="Helmet">Helmet</option>
-                <option value="Shoes">Shoes</option>
-                <option value="Other">Other</option>
+                <option value="Running">Running</option>
+                <option value="Fitness">Fitness</option>
+                <option value="Team Sports">Team Sports</option>
+                <option value="Swimming">Swimming</option>
+                <option value="Cycling">Cycling</option>
+                <option value="Yoga">Yoga</option>
               </select>
               {errors.category && (
                 <span className="error-text">{errors.category}</span>
@@ -400,6 +465,55 @@ const ItemAddScreen = () => {
               placeholder="Enter item description"
               rows="4"
             />
+          </div>
+
+          {/* Image Upload Section */}
+          <div className="section-header">Product Images</div>
+          <div className="image-upload-section">
+            <div className="form-group">
+              <label htmlFor="images">
+                Upload Images <span className="optional">(Optional)</span>
+              </label>
+              <input
+                type="file"
+                id="images"
+                name="images"
+                multiple
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploading}
+                className="file-input"
+              />
+              {uploading && (
+                <div className="upload-status">Uploading images...</div>
+              )}
+            </div>
+
+            {/* Display uploaded images */}
+            {formData.images.length > 0 && (
+              <div className="uploaded-images">
+                <div className="images-grid">
+                  {formData.images.map((image, index) => (
+                    <div key={index} className="image-preview">
+                      <img
+                        src={image.url}
+                        alt={`Product ${index + 1}`}
+                        className="preview-img"
+                      />
+                      <button
+                        type="button"
+                        className="remove-image-btn"
+                        onClick={() => removeImage(index)}
+                        title="Remove image"
+                      >
+                        ×
+                      </button>
+                      <div className="image-name">{image.originalName}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </form>
       </div>

@@ -2,7 +2,7 @@
   width: 220px;
   min-height: 100vh;
   /* Background set to your specific hex code */
-  background: #15173D; 
+  background: #15173d;
   color: white;
   position: fixed;
   left: 0;
@@ -82,13 +82,13 @@
 /* Hover effect adjusted to be a subtle contrast to #15173D */
 .nav-item:hover {
   color: white;
-  background: #1F2255; 
+  background: #1f2255;
 }
 
 /* Active state adjusted to match the hover for consistency */
 .nav-item.active {
   color: white;
-  background: #1F2255;
+  background: #1f2255;
   font-weight: 600;
 }
 
@@ -113,17 +113,24 @@
   background: transparent;
 }
 
-/* Logout Button */
-.logout-btn {
+/* Logout Button & Home Button */
+.logout-btn,
+.home-btn {
   color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
   border: none;
   background: none;
 }
 
-.logout-btn:hover {
-  background: #1F2255;
+.logout-btn:hover,
+.home-btn:hover {
+  background: #1f2255;
   color: white;
+}
+
+.home-btn {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 5px;
 }
 
 /* Responsive Design */

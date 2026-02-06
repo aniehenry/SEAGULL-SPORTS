@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../firebasecongif";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../../firebasecongif";
 import "./SignIn.css";
 
 const SignIn = () => {
@@ -98,21 +99,44 @@ const SignIn = () => {
       const user = userCredential.user;
       console.log("User signed in:", user);
 
-      // Check if user has admin role (you can customize this based on your user data structure)
-      // For now, we'll allow all authenticated users to access admin dashboard
-      // In a real app, you'd check user roles from Firestore or custom claims
-      const userRole = "admin"; // This should come from your user's custom claims or Firestore
+      // Fetch user role from Firestore
+      try {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
 
-      if (userRole !== "admin") {
-        setErrors((prev) => ({
-          ...prev,
-          general: "Access denied. Admin role required.",
-        }));
-        return;
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const userRole = userData.role || "user";
+          console.log("User role:", userRole);
+          console.log("Full user data:", userData);
+
+          // Wait for auth context to be properly updated before navigating
+          const navigateWithRole = () => {
+            if (userRole === "admin") {
+              console.log("Navigating admin to dashboard");
+              navigate("/admin/dashboard?redirect=signin");
+            } else {
+              console.log("Navigating user to home");
+              navigate("/user/home?redirect=signin");
+            }
+          };
+
+          // Use a longer timeout to ensure auth context updates
+          setTimeout(navigateWithRole, 300);
+        } else {
+          console.log(
+            "User document not found, creating default user role and redirecting",
+          );
+          setTimeout(() => {
+            navigate("/user/home?redirect=signin");
+          }, 300);
+        }
+      } catch (fetchError) {
+        console.error("Error fetching user data:", fetchError);
+        setTimeout(() => {
+          navigate("/user/home?redirect=signin");
+        }, 300); // Default fallback
       }
-
-      // Redirect to admin dashboard after successful login
-      navigate("/admin/dashboard");
     } catch (err) {
       console.error("Firebase Auth Error:", err);
       let errorMessage = "Invalid email or password. Please try again.";

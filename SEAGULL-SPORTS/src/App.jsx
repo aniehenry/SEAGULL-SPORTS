@@ -10,6 +10,7 @@ import PartyManagement from "./pages/admin/party/views/PartyManagement";
 import PartyAddScreen from "./pages/admin/party/views/PartyAddScreen";
 import ItemManagement from "./pages/admin/item/views/ItemManagement";
 import ItemAddScreen from "./pages/admin/item/views/ItemAddScreen";
+import ProductShop from "./pages/user/product/views/ProductShop";
 import InvoiceManagement from "./pages/admin/invoice/views/InvoiceManagement";
 import InvoiceAddScreen from "./pages/admin/invoice/views/InvoiceAddScreen";
 import PurchaseManagement from "./pages/admin/purchase/views/PurchaseManagement";
@@ -20,6 +21,7 @@ import OrderManagement from "./pages/admin/order/views/OrderManagement";
 import OrderViewScreen from "./pages/admin/order/views/OrderViewScreen";
 import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
+import UserHome from "./pages/user/UserHome";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import "./App.css";
 
@@ -88,13 +90,24 @@ const PublicRoute = ({ children }) => {
     );
   }
 
-  if (isAuthenticated) {
-    // Redirect based on user role
-    if (userRole === "admin") {
-      return <Navigate to="/admin/dashboard" replace />;
+  // Only redirect if user is already logged in and trying to access signin/signup from a direct URL
+  // Don't interfere during login process
+  if (isAuthenticated && userRole) {
+    const currentPath = window.location.pathname;
+
+    // Only redirect if accessing public routes directly, not during login flow
+    if (
+      currentPath === "/" ||
+      (currentPath === "/signin" &&
+        !window.location.search.includes("redirect")) ||
+      (currentPath === "/signup" &&
+        !window.location.search.includes("redirect"))
+    ) {
+      if (userRole === "admin") {
+        return <Navigate to="/admin/dashboard" replace />;
+      }
+      return <Navigate to="/user/home" replace />;
     }
-    // Add other role redirects here
-    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
@@ -104,39 +117,71 @@ function AppContent() {
   return (
     <div className="app">
       <Routes>
-        <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
+        <Route path="/" element={<Navigate to="/signin" replace />} />
+        <Route
+          path="/signin"
+          element={
+            <PublicRoute>
+              <SignIn />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <PublicRoute>
+              <SignUp />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/user/home"
+          element={
+            <ProtectedRoute requiredRole="user">
+              <UserHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/user/products"
+          element={
+            <ProtectedRoute requiredRole="user">
+              <ProductShop />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/admin/*"
           element={
-            <AdminLayout>
-              <Routes>
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="parties" element={<PartyManagement />} />
-                <Route path="parties/add" element={<PartyAddScreen />} />
-                <Route path="parties/edit/:id" element={<PartyAddScreen />} />
-                <Route path="items" element={<ItemManagement />} />
-                <Route path="items/add" element={<ItemAddScreen />} />
-                <Route path="items/edit/:id" element={<ItemAddScreen />} />
-                <Route path="invoices" element={<InvoiceManagement />} />
-                <Route path="invoices/add" element={<InvoiceAddScreen />} />
-                <Route
-                  path="invoices/edit/:id"
-                  element={<InvoiceAddScreen />}
-                />
-                <Route path="purchases" element={<PurchaseManagement />} />
-                <Route path="purchases/add" element={<PurchaseAddScreen />} />
-                <Route
-                  path="purchases/edit/:id"
-                  element={<PurchaseAddScreen />}
-                />
-                <Route path="payments" element={<PaymentManagement />} />
-                <Route path="payments/add" element={<PaymentAddScreen />} />
-                <Route path="orders" element={<OrderManagement />} />
-                <Route path="orders/:orderId" element={<OrderViewScreen />} />
-              </Routes>
-            </AdminLayout>
+            <ProtectedRoute requiredRole="admin">
+              <AdminLayout>
+                <Routes>
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="parties" element={<PartyManagement />} />
+                  <Route path="parties/add" element={<PartyAddScreen />} />
+                  <Route path="parties/edit/:id" element={<PartyAddScreen />} />
+                  <Route path="items" element={<ItemManagement />} />
+                  <Route path="items/add" element={<ItemAddScreen />} />
+                  <Route path="items/edit/:id" element={<ItemAddScreen />} />
+                  <Route path="invoices" element={<InvoiceManagement />} />
+                  <Route path="invoices/add" element={<InvoiceAddScreen />} />
+                  <Route
+                    path="invoices/edit/:id"
+                    element={<InvoiceAddScreen />}
+                  />
+                  <Route path="purchases" element={<PurchaseManagement />} />
+                  <Route path="purchases/add" element={<PurchaseAddScreen />} />
+                  <Route
+                    path="purchases/edit/:id"
+                    element={<PurchaseAddScreen />}
+                  />
+                  <Route path="payments" element={<PaymentManagement />} />
+                  <Route path="payments/add" element={<PaymentAddScreen />} />
+                  <Route path="orders" element={<OrderManagement />} />
+                  <Route path="orders/:orderId" element={<OrderViewScreen />} />
+                </Routes>
+              </AdminLayout>
+            </ProtectedRoute>
           }
         />
       </Routes>
