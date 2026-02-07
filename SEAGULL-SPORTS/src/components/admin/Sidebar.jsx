@@ -15,15 +15,11 @@ const Sidebar = () => {
     }
   };
 
-  const goToUserHome = () => {
-    navigate("/user/home");
-  };
-
   return (
     <div className="sidebar">
       <div className="sidebar-header">
-        <h2 className="sidebar-title">PANDA</h2>
-        <p className="sidebar-subtitle">Business Management</p>
+        <h2 className="sidebar-title">SEAGULL</h2>
+        <p className="sidebar-subtitle">Sports Management</p>
       </div>
 
       <nav className="sidebar-nav">
@@ -107,10 +103,6 @@ const Sidebar = () => {
 
       {/* Logout at bottom */}
       <div className="sidebar-footer">
-        <button className="nav-item home-btn" onClick={goToUserHome}>
-          <span className="nav-icon">🏪</span>
-          <span className="nav-text">User Shop</span>
-        </button>
         <button className="nav-item logout-btn" onClick={handleLogout}>
           <span className="nav-icon">🚪</span>
           <span className="nav-text">Logout</span>

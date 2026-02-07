@@ -3,6 +3,11 @@ class Item {
     this.id = data.id || null;
     this.name = data.name || "";
     this.category = data.category || "";
+    this.brand = data.brand || "";
+    this.size = data.size || "";
+    this.color = data.color || "";
+    this.material = data.material || "";
+    this.weight = data.weight || "";
     this.stockQuantity = data.stockQuantity || 0;
     this.purchasePrice = data.purchasePrice || 0;
     this.sellingPrice = data.sellingPrice || 0;

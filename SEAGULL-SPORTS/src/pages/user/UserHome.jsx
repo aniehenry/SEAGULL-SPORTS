@@ -37,7 +37,7 @@ const UserHome = () => {
     };
 
     updateCartCount();
-    
+
     // Listen for storage changes (cart updates from other components)
     const handleStorageChange = (e) => {
       if (e.key === "seagull-cart") {
@@ -45,14 +45,14 @@ const UserHome = () => {
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    
+    window.addEventListener("storage", handleStorageChange);
+
     // Also listen for custom cart update events
-    window.addEventListener('cartUpdated', updateCartCount);
+    window.addEventListener("cartUpdated", updateCartCount);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('cartUpdated', updateCartCount);
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("cartUpdated", updateCartCount);
     };
   }, []);
 
@@ -137,12 +137,60 @@ const UserHome = () => {
                 Categories
               </a>
               <div className="categories-dropdown">
-                <a href="#running">🏃 Running</a>
-                <a href="#fitness">🏋️ Fitness</a>
-                <a href="#team-sports">⚽ Team Sports</a>
-                <a href="#swimming">🏊 Swimming</a>
-                <a href="#cycling">🚴 Cycling</a>
-                <a href="#yoga">🧘 Yoga</a>
+                <a
+                  href="#running"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/user/products?category=Running");
+                  }}
+                >
+                  🏃 Running
+                </a>
+                <a
+                  href="#fitness"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/user/products?category=Fitness");
+                  }}
+                >
+                  🏋️ Fitness
+                </a>
+                <a
+                  href="#team-sports"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/user/products?category=Team Sports");
+                  }}
+                >
+                  ⚽ Team Sports
+                </a>
+                <a
+                  href="#swimming"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/user/products?category=Swimming");
+                  }}
+                >
+                  🏊 Swimming
+                </a>
+                <a
+                  href="#cycling"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/user/products?category=Cycling");
+                  }}
+                >
+                  🚴 Cycling
+                </a>
+                <a
+                  href="#yoga"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/user/products?category=Yoga");
+                  }}
+                >
+                  🧘 Yoga
+                </a>
               </div>
             </div>
             <a
@@ -159,10 +207,7 @@ const UserHome = () => {
           </div>
 
           <div className="nav-cart">
-            <button
-              className="cart-btn"
-              onClick={() => navigate("/user/cart")}
-            >
+            <button className="cart-btn" onClick={() => navigate("/user/cart")}>
               <span className="cart-icon">🛒</span>
               {cartItemCount > 0 && (
                 <span className="cart-counter">{cartItemCount}</span>
@@ -198,7 +243,8 @@ const UserHome = () => {
                   className="dropdown-item"
                   onClick={() => navigate("/user/cart")}
                 >
-                  <span>🛒</span> View Cart {cartItemCount > 0 && `(${cartItemCount})`}
+                  <span>🛒</span> View Cart{" "}
+                  {cartItemCount > 0 && `(${cartItemCount})`}
                 </button>
                 <button
                   className="dropdown-item"
@@ -237,7 +283,7 @@ const UserHome = () => {
               <div className="hero-content">
                 <h1>{image.title}</h1>
                 <p>{image.subtitle}</p>
-                <button 
+                <button
                   className="hero-cta"
                   onClick={() => navigate("/user/products")}
                 >
@@ -270,9 +316,13 @@ const UserHome = () => {
                 <div className="category-icon">{category.icon}</div>
                 <h3>{category.title}</h3>
                 <p>{category.description}</p>
-                <button 
+                <button
                   className="category-btn"
-                  onClick={() => navigate("/user/products")}
+                  onClick={() =>
+                    navigate(
+                      `/user/products?category=${encodeURIComponent(category.title)}`,
+                    )
+                  }
                 >
                   Browse
                 </button>

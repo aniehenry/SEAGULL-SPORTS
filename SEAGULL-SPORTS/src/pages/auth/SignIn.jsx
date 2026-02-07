@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "../../firebasecongif";
+import { auth } from "../../firebasecongif";
 import { useAuth } from "../../contexts/AuthContext";
 import "./SignIn.css";
 
@@ -29,7 +28,7 @@ const SignIn = () => {
       console.log("Role === 'admin':", userRole === "admin");
       console.log("Role === 'user':", userRole === "user");
       console.log("Loading state:", loading);
-      
+
       // Navigate based on role
       if (userRole === "admin") {
         console.log("🔐 ADMIN DETECTED - Navigating to dashboard");
@@ -38,9 +37,6 @@ const SignIn = () => {
         console.log("👤 USER DETECTED - Navigating to home");
         navigate("/user/home?redirect=signin");
       }
-      
-      // Reset loading state after navigation
-      setIsLoading(false);
     }
   }, [user, userRole, loading, navigate]);
 
@@ -127,9 +123,8 @@ const SignIn = () => {
       const user = userCredential.user;
       console.log("✅ User signed in successfully:", user.email);
       console.log("🔄 AuthContext will handle role fetching and navigation...");
-      
+
       // The useEffect above will handle navigation once AuthContext updates
-      
     } catch (err) {
       console.error("Firebase Auth Error:", err);
       let errorMessage = "Invalid email or password. Please try again.";

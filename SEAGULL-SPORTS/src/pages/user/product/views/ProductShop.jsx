@@ -43,9 +43,9 @@ const ProductShop = () => {
   };
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR'
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
     }).format(price);
   };
 
@@ -72,8 +72,16 @@ const ProductShop = () => {
       {/* Main Content */}
       <div className="shop-content">
         <div className="shop-header">
-          <h1>Our Products</h1>
-          <p>Discover premium sports equipment and gear</p>
+          <h1>
+            {selectedCategory !== "all"
+              ? `${selectedCategory} Products`
+              : "Our Products"}
+          </h1>
+          <p>
+            {selectedCategory !== "all"
+              ? `Discover premium ${selectedCategory.toLowerCase()} equipment and gear`
+              : "Discover premium sports equipment and gear"}
+          </p>
         </div>
 
         {/* Search and Filter Controls */}
@@ -105,23 +113,23 @@ const ProductShop = () => {
         </div>
 
         {/* Error Message */}
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
+        {error && <div className="error-message">{error}</div>}
 
         {/* Products Grid */}
         {products.length > 0 ? (
           <div className="products-grid">
             {products.map((product) => (
-              <div key={`${product.adminId}-${product.id}`} className="product-card">
+              <div
+                key={`${product.adminId}-${product.id}`}
+                className="product-card"
+              >
                 <div className="product-image">
                   <img
                     src={product.getMainImage()}
                     alt={product.name}
                     onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/300x300?text=No+Image';
+                      e.target.src =
+                        "https://via.placeholder.com/300x300?text=No+Image";
                     }}
                   />
                   {!product.isInStock() && (
@@ -130,31 +138,39 @@ const ProductShop = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="product-info">
                   <h3 className="product-name">{product.name}</h3>
                   <p className="product-category">{product.category}</p>
                   <p className="product-description">{product.description}</p>
-                  
+
                   <div className="product-pricing">
-                    <span className="current-price">{formatPrice(product.sellingPrice)}</span>
+                    <span className="current-price">
+                      {formatPrice(product.sellingPrice)}
+                    </span>
                     {product.purchasePrice && (
-                      <span className="original-price">{formatPrice(product.purchasePrice)}</span>
+                      <span className="original-price">
+                        {formatPrice(product.purchasePrice)}
+                      </span>
                     )}
                   </div>
-                  
+
                   <div className="product-stock">
-                    <span className={`stock-status ${product.isInStock() ? 'in-stock' : 'out-of-stock'}`}>
-                      {product.isInStock() ? `In Stock (${product.stockQuantity})` : 'Out of Stock'}
+                    <span
+                      className={`stock-status ${product.isInStock() ? "in-stock" : "out-of-stock"}`}
+                    >
+                      {product.isInStock()
+                        ? `In Stock (${product.stockQuantity})`
+                        : "Out of Stock"}
                     </span>
                   </div>
-                  
+
                   <button
-                    className={`add-to-cart-btn ${!product.isInStock() ? 'disabled' : ''}`}
+                    className={`add-to-cart-btn ${!product.isInStock() ? "disabled" : ""}`}
                     onClick={() => onAddToCart(product)}
                     disabled={!product.isInStock()}
                   >
-                    {product.isInStock() ? 'Add to Cart' : 'Out of Stock'}
+                    {product.isInStock() ? "Add to Cart" : "Out of Stock"}
                   </button>
                 </div>
               </div>
@@ -166,11 +182,11 @@ const ProductShop = () => {
               <span className="no-products-icon">📦</span>
               <h3>No Products Found</h3>
               <p>We couldn't find any products matching your criteria.</p>
-              {(searchTerm || selectedCategory !== 'all') && (
+              {(searchTerm || selectedCategory !== "all") && (
                 <button
                   onClick={() => {
-                    handleSearch('');
-                    handleCategoryFilter('all');
+                    handleSearch("");
+                    handleCategoryFilter("all");
                   }}
                   className="clear-filters-btn"
                 >

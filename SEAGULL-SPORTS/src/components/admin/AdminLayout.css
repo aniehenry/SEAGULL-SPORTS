@@ -4,6 +4,7 @@
   width: 100%;
   background: #f8f9fa;
   overflow: hidden;
+  position: relative;
 }
 
 .main-content {
@@ -13,6 +14,7 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  position: relative;
 }
 
 .content-wrapper {

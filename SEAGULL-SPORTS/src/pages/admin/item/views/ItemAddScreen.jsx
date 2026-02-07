@@ -19,6 +19,11 @@ const ItemAddScreen = () => {
   const [formData, setFormData] = useState({
     name: "",
     category: "",
+    brand: "",
+    size: "",
+    color: "",
+    material: "",
+    weight: "",
     stockQuantity: "",
     purchasePrice: "",
     sellingPrice: "",
@@ -39,6 +44,11 @@ const ItemAddScreen = () => {
             setFormData({
               name: item.name || "",
               category: item.category || "",
+              brand: item.brand || "",
+              size: item.size || "",
+              color: item.color || "",
+              material: item.material || "",
+              weight: item.weight || "",
               stockQuantity: item.stockQuantity || "",
               purchasePrice: item.purchasePrice || "",
               sellingPrice: item.sellingPrice || "",
@@ -72,12 +82,14 @@ const ItemAddScreen = () => {
     if (files.length === 0) return;
 
     // Validate file types and sizes
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     const maxSize = 5 * 1024 * 1024; // 5MB limit
-    
+
     for (const file of files) {
       if (!validTypes.includes(file.type)) {
-        alert(`Invalid file type: ${file.name}. Please upload JPEG, PNG, or WebP images.`);
+        alert(
+          `Invalid file type: ${file.name}. Please upload JPEG, PNG, or WebP images.`,
+        );
         return;
       }
       if (file.size > maxSize) {
@@ -129,18 +141,21 @@ const ItemAddScreen = () => {
         }));
 
         const successMsg = `${uploadedImages.length} image(s) uploaded successfully!`;
-        const errorMsg = errorCount > 0 ? ` ${errorCount} upload(s) failed.` : '';
+        const errorMsg =
+          errorCount > 0 ? ` ${errorCount} upload(s) failed.` : "";
         alert(successMsg + errorMsg);
       } else {
         alert("All uploads failed. Please try again.");
       }
     } catch (error) {
       console.error("Error uploading images:", error);
-      alert("Failed to upload images. Please check your connection and try again.");
+      alert(
+        "Failed to upload images. Please check your connection and try again.",
+      );
     } finally {
       setUploading(false);
       // Clear the file input
-      event.target.value = '';
+      event.target.value = "";
     }
   };
 
@@ -314,18 +329,100 @@ const ItemAddScreen = () => {
                 className={errors.category ? "error" : ""}
               >
                 <option value="">Select category</option>
-                <option value="Running">Running</option>
-                <option value="Fitness">Fitness</option>
-                <option value="Team Sports">Team Sports</option>
+                <option value="Cricket">Cricket</option>
+                <option value="Football">Football</option>
+                <option value="Basketball">Basketball</option>
+                <option value="Tennis">Tennis</option>
+                <option value="Badminton">Badminton</option>
                 <option value="Swimming">Swimming</option>
+                <option value="Running">Running</option>
                 <option value="Cycling">Cycling</option>
+                <option value="Gym/Fitness">Gym/Fitness</option>
                 <option value="Yoga">Yoga</option>
+                <option value="Team Sports">Team Sports</option>
+                <option value="Outdoor Sports">Outdoor Sports</option>
+                <option value="Water Sports">Water Sports</option>
+                <option value="Winter Sports">Winter Sports</option>
+                <option value="Sports Accessories">Sports Accessories</option>
+                <option value="Sports Nutrition">Sports Nutrition</option>
               </select>
               {errors.category && (
                 <span className="error-text">{errors.category}</span>
               )}
             </div>
 
+            <div className="form-group">
+              <label htmlFor="brand">Brand</label>
+              <input
+                type="text"
+                id="brand"
+                name="brand"
+                value={formData.brand}
+                onChange={handleChange}
+                placeholder="Enter brand name"
+              />
+            </div>
+          </div>
+
+          {/* Sports Specific Details */}
+          <div className="section-header">Sports Details</div>
+
+          <div className="form-row-3">
+            <div className="form-group">
+              <label htmlFor="size">Size</label>
+              <input
+                type="text"
+                id="size"
+                name="size"
+                value={formData.size}
+                onChange={handleChange}
+                placeholder="Enter size (e.g., XL, 42, 10)"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="color">Color</label>
+              <input
+                type="text"
+                id="color"
+                name="color"
+                value={formData.color}
+                onChange={handleChange}
+                placeholder="Enter color"
+              />
+            </div>
+          </div>
+
+          <div className="form-row-2">
+            <div className="form-group">
+              <label htmlFor="material">Material</label>
+              <input
+                type="text"
+                id="material"
+                name="material"
+                value={formData.material}
+                onChange={handleChange}
+                placeholder="Enter material (e.g., Cotton, Polyester, Leather)"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="weight">Weight</label>
+              <input
+                type="text"
+                id="weight"
+                name="weight"
+                value={formData.weight}
+                onChange={handleChange}
+                placeholder="Enter weight (e.g., 500g, 1.2kg)"
+              />
+            </div>
+          </div>
+
+          {/* Inventory & Pricing */}
+          <div className="section-header">Inventory & Pricing</div>
+
+          <div className="form-row-3">
             <div className="form-group">
               <label htmlFor="stockQuantity">
                 Stock Quantity<span className="required">*</span>
@@ -517,7 +614,8 @@ const ItemAddScreen = () => {
                 />
                 <div className="file-input-help">
                   <small>
-                    📝 Supported formats: JPEG, PNG, WebP • Max size: 5MB per image • Multiple images allowed
+                    📝 Supported formats: JPEG, PNG, WebP • Max size: 5MB per
+                    image • Multiple images allowed
                   </small>
                 </div>
               </div>

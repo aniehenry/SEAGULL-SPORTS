@@ -177,55 +177,96 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
+      <div className="dashboard-header">
+        <h1>📊 Dashboard Overview</h1>
+        <p>Welcome back! Here's what's happening with your business today.</p>
+      </div>
+
       {loading ? (
-        <div className="loading-spinner">Loading Data...</div>
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading your dashboard...</p>
+        </div>
       ) : (
         <>
-          <div className="dashboard-grid">
-            <div className="stat-card purple">
-              <h3>{stats.totalProducts}</h3>
-              <p>Total Products</p>
-            </div>
-            <div className="stat-card blue">
-              <h3>₹{stats.totalPurchase.toLocaleString()}</h3>
-              <p>Total Purchase</p>
-            </div>
-            <div className="stat-card green">
-              <h3>₹{stats.totalSales.toLocaleString()}</h3>
-              <p>Total Sales</p>
-            </div>
-            <div className="stat-card orange">
-              <h3>{stats.totalOrders}</h3>
-              <p>Total Orders</p>
-            </div>
-            <div className="stat-card cyan">
-              <h3>₹{stats.paymentsIn.toLocaleString()}</h3>
-              <p>Payments IN</p>
-            </div>
-            <div className="stat-card red">
-              <h3>₹{stats.paymentsOut.toLocaleString()}</h3>
-              <p>Payments OUT</p>
+          <div className="stats-section">
+            <h2 className="section-title">📈 Key Metrics</h2>
+            <div className="dashboard-grid">
+              <div className="stat-card purple">
+                <div className="stat-icon">📦</div>
+                <div className="stat-content">
+                  <h3>{stats.totalProducts}</h3>
+                  <p>Total Products</p>
+                </div>
+              </div>
+              <div className="stat-card blue">
+                <div className="stat-icon">🛒</div>
+                <div className="stat-content">
+                  <h3>₹{stats.totalPurchase.toLocaleString()}</h3>
+                  <p>Total Purchase</p>
+                </div>
+              </div>
+              <div className="stat-card green">
+                <div className="stat-icon">💰</div>
+                <div className="stat-content">
+                  <h3>₹{stats.totalSales.toLocaleString()}</h3>
+                  <p>Total Sales</p>
+                </div>
+              </div>
+              <div className="stat-card orange">
+                <div className="stat-icon">📋</div>
+                <div className="stat-content">
+                  <h3>{stats.totalOrders}</h3>
+                  <p>Total Orders</p>
+                </div>
+              </div>
+              <div className="stat-card cyan">
+                <div className="stat-icon">💵</div>
+                <div className="stat-content">
+                  <h3>₹{stats.paymentsIn.toLocaleString()}</h3>
+                  <p>Payments IN</p>
+                </div>
+              </div>
+              <div className="stat-card red">
+                <div className="stat-icon">💸</div>
+                <div className="stat-content">
+                  <h3>₹{stats.paymentsOut.toLocaleString()}</h3>
+                  <p>Payments OUT</p>
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="activities-section">
-            <h2 className="section-title">Recent Activities</h2>
+            <div className="section-header">
+              <h2 className="section-title">🕒 Recent Activities</h2>
+              <p className="section-subtitle">
+                Click on any activity to view details
+              </p>
+            </div>
             <div className="table-container">
               <table className="activities-table">
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Status</th>
+                    <th>📅 Date</th>
+                    <th>🏷️ Type</th>
+                    <th>📝 Description</th>
+                    <th>💰 Amount</th>
+                    <th>📊 Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentActivities.length === 0 ? (
                     <tr>
                       <td colSpan="5" className="no-data">
-                        No data found
+                        <div className="no-data-content">
+                          <div className="no-data-icon">📭</div>
+                          <p>No recent activities found</p>
+                          <small>
+                            Start creating invoices, orders, or purchases to see
+                            activity here
+                          </small>
+                        </div>
                       </td>
                     </tr>
                   ) : (
@@ -236,9 +277,22 @@ const Dashboard = () => {
                         className="activity-row"
                       >
                         <td>{new Date(activity.date).toLocaleDateString()}</td>
-                        <td>{activity.type}</td>
-                        <td>{activity.description}</td>
-                        <td>₹{activity.amount.toLocaleString()}</td>
+                        <td>
+                          <span
+                            className={`type-badge ${activity.type.toLowerCase()}`}
+                          >
+                            {activity.type === "Invoice" && "🧾"}
+                            {activity.type === "Purchase" && "🛒"}
+                            {activity.type === "Order" && "📋"}
+                            {activity.type}
+                          </span>
+                        </td>
+                        <td className="description-cell">
+                          {activity.description}
+                        </td>
+                        <td className="amount-cell">
+                          ₹{activity.amount.toLocaleString()}
+                        </td>
                         <td>
                           <span
                             className={`status-badge ${activity.status?.toLowerCase()}`}
