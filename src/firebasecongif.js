@@ -4,13 +4,13 @@ import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDxvvKl0SzVWcfF7CKnp9rghIdaU5cLPn4",
-  authDomain: "seagull-sports.firebaseapp.com",
-  projectId: "seagull-sports",
-  storageBucket: "seagull-sports.firebasestorage.app",
-  messagingSenderId: "72239690844",
-  appId: "1:72239690844:web:58cdddf507c021c886e299",
-  measurementId: "G-MXF10TZF32",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
