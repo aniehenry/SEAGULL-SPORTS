@@ -1,0 +1,181 @@
+:root {
+  --bg-color: #fcfcfd;
+  --card-bg: #ffffff;
+  --text-primary: #111111;
+  --text-secondary: #666666;
+  --accent: #000000;
+  --border-subtle: #eeeeee;
+}
+
+.orders-wrapper {
+  max-width: 800px; /* Centered narrow feed like real-time apps */
+  margin: 0 auto;
+  padding: 40px 20px;
+  background: var(--bg-color);
+  min-height: 100vh;
+}
+
+.page-header h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 24px;
+}
+
+/* Filter Pills */
+.filter-pills {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.pill {
+  padding: 8px 18px;
+  border-radius: 40px;
+  border: 1px solid var(--border-subtle);
+  background: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.pill.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* Neat Order Card */
+.neat-order-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 16px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.neat-order-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.id-label { font-size: 0.75rem; color: #999; display: block; }
+.id-value { font-weight: 700; font-size: 1rem; }
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+
+.card-mid {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+}
+
+.item-previews { display: flex; align-items: center; gap: 8px; }
+.mini-thumb { width: 48px; height: 48px; border-radius: 8px; background: #f5f5f5; object-fit: cover; border: 1px solid #eee; }
+.more-count { font-size: 0.8rem; color: #666; font-weight: 600; }
+
+.price-summary { text-align: right; }
+.date-sub { display: block; font-size: 0.8rem; color: #999; margin-bottom: 4px; }
+.price-main { font-size: 1.2rem; font-weight: 800; }
+
+.card-actions { display: flex; gap: 12px; border-top: 1px solid var(--border-subtle); padding-top: 20px; }
+
+.primary-btn-outline {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #000;
+  background: transparent;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.secondary-btn {
+  flex: 1;
+  padding: 10px;
+  background: #000000;
+  border: none;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Receipt Modal */
+.receipt-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.receipt-paper {
+  background: #fff;
+  width: 90%;
+  max-width: 450px;
+  padding: 40px;
+  border-radius: 4px; /* Slightly sharper for receipt feel */
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+
+.receipt-close { position: absolute; top: 20px; right: 20px; border: none; background: none; font-size: 1.2rem; cursor: pointer; }
+
+.receipt-header { text-align: center; border-bottom: 1px dashed #ddd; padding-bottom: 24px; margin-bottom: 24px; }
+.receipt-header .brand { letter-spacing: 2px; font-weight: 900; margin-bottom: 4px; }
+.receipt-header p { font-size: 0.75rem; color: #999; text-transform: uppercase; }
+
+.receipt-meta { font-size: 0.85rem; line-height: 1.8; margin-bottom: 32px; color: #555; }
+
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.row-main span { display: block; font-weight: 600; }
+.row-main small { color: #999; }
+
+.receipt-total {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 2px solid #000;
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.4rem;
+  font-weight: 900;
+}
+
+.print-btn {
+  width: 100%;
+  margin-top: 40px;
+  padding: 16px;
+  background: #000;
+  color: #fff;
+  border: none;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+}

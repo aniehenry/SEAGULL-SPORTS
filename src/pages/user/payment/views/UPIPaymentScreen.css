@@ -1,0 +1,149 @@
+/* Container and Background */
+.payment-page-wrapper {
+  background-color: #f8fafc;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Inter', -apple-system, sans-serif;
+  padding: 20px;
+}
+
+.payment-modal {
+  background: #ffffff;
+  width: 100%;
+  max-width: 420px;
+  padding: 32px;
+  border-radius: 28px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.06);
+}
+
+/* Step Progress Bar */
+.checkout-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.step-item {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.step-item.active { color: #0f172a; }
+.step-item.completed { color: #10b981; }
+
+.step-divider {
+  flex: 1;
+  height: 2px;
+  background: #f1f5f9;
+  margin: 0 10px;
+}
+
+.step-divider.active { background: #10b981; }
+
+/* Invoice Box */
+.invoice-box {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 24px 0;
+}
+
+.invoice-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.text-dark { color: #1e293b; font-weight: 600; }
+
+.invoice-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 12px 0;
+}
+
+.invoice-row.total {
+  margin-bottom: 0;
+  color: #0f172a;
+}
+
+.amount-highlight {
+  font-size: 20px;
+  font-weight: 800;
+  color: #10b981;
+}
+
+/* Buttons */
+.btn-pay-next, .btn-complete {
+  width: 100%;
+  padding: 16px;
+  border-radius: 14px;
+  border: none;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-pay-next { background: #0f172a; color: white; margin-bottom: 12px; }
+.btn-pay-next:hover { background: #1e293b; }
+
+.btn-complete { background: #10b981; color: white; }
+.btn-complete.is-loading { background: #059669; cursor: wait; opacity: 0.8; }
+.btn-complete.is-success { background: #10b981; }
+
+.btn-back-link, .btn-cancel-text {
+  width: 100%;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 13px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+/* QR Section */
+.qr-header-info { text-align: center; margin-bottom: 24px; }
+
+.timer-pill {
+  display: inline-block;
+  background: #fee2e2;
+  color: #ef4444;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.qr-display-card {
+  background: white;
+  border: 1px solid #f1f5f9;
+  padding: 16px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.qr-view { text-align: center; }
+
+.p-amount { font-size: 32px; font-weight: 800; color: #0f172a; margin-top: 5px; }
+
+/* Animations */
+.fade-in {
+  animation: slideUp 0.4s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

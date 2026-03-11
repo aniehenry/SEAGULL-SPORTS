@@ -1,0 +1,236 @@
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../../contexts/AuthContext";
+import * as orderController from "../controllers/orderController";
+import "./OrderManagement.css";
+
+const OrderManagement = () => {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [filterStatus, setFilterStatus] = useState("All");
+
+  const fetchOrders = async () => {
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
+
+    console.log("Fetching orders for admin user:", currentUser.uid);
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await orderController.fetchOrders(currentUser.uid);
+      console.log("Orders fetch result:", result);
+
+      if (result.success) {
+        console.log("Orders received:", result.orders);
+        setOrders(result.orders);
+        setFilteredOrders(result.orders);
+      } else {
+        console.error("Failed to fetch orders:", result.error);
+        setError(result.error || "Failed to fetch orders");
+      }
+    } catch (err) {
+      console.error("Error in fetchOrders:", err);
+      setError("An error occurred while fetching orders");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterOrders = (status) => {
+    setFilterStatus(status);
+    if (status === "All") {
+      setFilteredOrders(orders);
+    } else {
+      // Convert status to lowercase to match user order status format
+      const statusLower = status.toLowerCase();
+      setFilteredOrders(orders.filter((order) => order.status.toLowerCase() === statusLower));
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser]);
+
+  const handleViewOrder = (orderId) => {
+    navigate(`/admin/orders/${orderId}`);
+  };
+
+  const handleDeleteOrder = async (orderId) => {
+    if (!window.confirm("Are you sure you want to delete this order?")) {
+      return;
+    }
+
+    try {
+      const result = await orderController.deleteOrder(
+        currentUser.uid,
+        orderId,
+      );
+
+      if (result.success) {
+        fetchOrders();
+        alert("Order deleted successfully!");
+      } else {
+        alert(result.error || "Failed to delete order");
+      }
+    } catch (err) {
+      alert("An error occurred while deleting order");
+      console.error(err);
+    }
+  };
+
+  const getStatusClass = (status) => {
+    const statusLower = status.toLowerCase();
+    switch (statusLower) {
+      case "completed":
+        return "status-completed";
+      case "processing":
+        return "status-processing";
+      case "cancelled":
+        return "status-cancelled";
+      default:
+        return "status-pending";
+    }
+  };
+
+  const getPaymentStatusClass = (paymentStatus) => {
+    const statusLower = paymentStatus.toLowerCase();
+    switch (statusLower) {
+      case "paid":
+        return "payment-paid";
+      case "partially paid":
+        return "payment-partial";
+      default:
+        return "payment-unpaid";
+    }
+  };
+
+  if (loading) {
+    return <div className="loading">Loading orders...</div>;
+  }
+
+  return (
+    <div className="order-management">
+      <div className="order-header">
+        <div>
+          <h1 className="order-title">Orders</h1>
+          <p className="order-subtitle">Manage and track customer orders</p>
+        </div>
+      </div>
+
+      {error && <div className="error-message">{error}</div>}
+
+      <div className="filter-chips">
+        <button
+          className={`chip ${filterStatus === "All" ? "active" : ""}`}
+          onClick={() => filterOrders("All")}
+        >
+          All Orders
+        </button>
+        <button
+          className={`chip ${filterStatus === "Pending" ? "active" : ""}`}
+          onClick={() => filterOrders("Pending")}
+        >
+          Pending
+        </button>
+        <button
+          className={`chip ${filterStatus === "Processing" ? "active" : ""}`}
+          onClick={() => filterOrders("Processing")}
+        >
+          Processing
+        </button>
+        <button
+          className={`chip ${filterStatus === "Completed" ? "active" : ""}`}
+          onClick={() => filterOrders("Completed")}
+        >
+          Completed
+        </button>
+        <button
+          className={`chip ${filterStatus === "Cancelled" ? "active" : ""}`}
+          onClick={() => filterOrders("Cancelled")}
+        >
+          Cancelled
+        </button>
+      </div>
+
+      <div className="table-container">
+        <table className="order-table">
+          <thead>
+            <tr>
+              <th>Order No</th>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Date</th>
+              <th>Items</th>
+              <th>Total Amount</th>
+              <th>Status</th>
+              <th>Payment</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredOrders.length === 0 ? (
+              <tr>
+                <td colSpan="9" className="no-data">
+                  No orders found
+                </td>
+              </tr>
+            ) : (
+              filteredOrders.map((order) => (
+                <tr key={order.orderId}>
+                  <td className="order-number">{order.orderNumber || `ORD-${order.orderId?.slice(-8)}`}</td>
+                  <td>{order.customerName || order.userId || "Unknown"}</td>
+                  <td>{order.customerPhone || "N/A"}</td>
+                  <td>{order.orderDate ? new Date(order.orderDate).toLocaleDateString() : "N/A"}</td>
+                  <td>{(order.items || []).length} items</td>
+                  <td className="amount">₹{(order.totalAmount || 0).toFixed(2)}</td>
+                  <td>
+                    <span
+                      className={`status-badge ${getStatusClass(order.status || "pending")}`}
+                    >
+                      {(order.status || "pending").charAt(0).toUpperCase() + (order.status || "pending").slice(1)}
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      className={`payment-badge ${getPaymentStatusClass(order.paymentStatus || "pending")}`}
+                    >
+                      {(order.paymentStatus || "pending").charAt(0).toUpperCase() + (order.paymentStatus || "pending").slice(1)}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="action-buttons">
+                      <button
+                        className="btn-view"
+                        onClick={() => handleViewOrder(order.orderId)}
+                        title="View Order"
+                      >
+                        👁️
+                      </button>
+                      <button
+                        className="btn-delete"
+                        onClick={() => handleDeleteOrder(order.orderId)}
+                        title="Delete Order"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default OrderManagement;
